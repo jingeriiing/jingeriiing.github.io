@@ -95,9 +95,23 @@
     const rangeIntensity = document.getElementById('intensity');
     const btnToggle = document.getElementById('toggle');
     const key = 'bg-state-v1';
-    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const saved = JSON.parse(localStorage.getItem(key) || 'null');
+    const prefersReduced = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || false;
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(key) || 'null'); } catch (_) { saved = null; }
     const state = { running: saved?.running ?? (!prefersReduced), mode: saved?.mode ?? 'chaos', intensity: saved?.intensity ?? 60 };
+
+    // URL 强制参数：?bg=on/off &mode=chaos|eclipse|emblem
+    try {
+      const usp = new URLSearchParams(location.search);
+      const bgParam = usp.get('bg');
+      const modeParam = usp.get('mode');
+      if (bgParam === 'on')  state.running = true;
+      if (bgParam === 'off') state.running = false;
+      if (modeParam && ['chaos','eclipse','emblem'].includes(modeParam)) {
+        state.mode = modeParam;
+      }
+    } catch(_) {}
+
 
     selMode.value = state.mode; rangeIntensity.value = state.intensity;
     btnToggle.setAttribute('aria-pressed', state.running);
@@ -160,11 +174,26 @@
     let engine = modes[state.mode](); let rafId=0;
 
     function loop(){ if(!state.running) return; engine.step(Number(state.intensity)); rafId=requestAnimationFrame(loop); }
-    function start(){ if(state.running) return; state.running=true; persist(); btnToggle.setAttribute('aria-pressed','true'); btnToggle.textContent='关闭背景动画'; loop(); }
+    function start(){
+      if (state.running) return;
+      state.running = true; persist();
+      btnToggle.setAttribute('aria-pressed','true');
+      btnToggle.textContent = '关闭背景动画';
+      cancelAnimationFrame(rafId); // 保险：先取消潜在旧帧
+      loop();                      // 进入主循环
+    }
+
     function stop(){ if(!state.running) return; state.running=false; persist(); btnToggle.setAttribute('aria-pressed','false'); btnToggle.textContent='开启背景动画';
       cancelAnimationFrame(rafId); ctx.fillStyle='#000214'; ctx.fillRect(0,0,innerWidth,innerHeight); }
     btnToggle.addEventListener('click', ()=> (state.running?stop():start()));
-    selMode.addEventListener('change', ()=>{ state.mode=selMode.value; persist(); engine=modes[state.mode](); ctx.fillStyle='#000214'; ctx.fillRect(0,0,innerWidth,innerHeight); });
+    selMode.addEventListener('change', ()=>{
+      state.mode = selMode.value; persist();
+      cancelAnimationFrame(rafId);             // 先停掉旧循环
+      engine = modes[state.mode]();            // 重建引擎
+      ctx.fillStyle = '#000214'; ctx.fillRect(0,0,innerWidth,innerHeight); // 清屏
+      if (state.running) loop();               // 若处于运行状态，立刻重启
+    });
+
     rangeIntensity.addEventListener('input', ()=>{ state.intensity=Number(rangeIntensity.value); persist(); });
 
     // 首帧初始化
