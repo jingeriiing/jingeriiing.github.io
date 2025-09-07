@@ -1,3 +1,4 @@
+cat > index.html <<'EOF'
 <!doctype html>
 <html lang="zh-CN">
 <head>
@@ -5,57 +6,28 @@
   <title>Jinger - 个人主页</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root {
-      --panel-bg: rgba(0,0,0,.35); --text:#f0f0f0; --link:#66ccff;
-      --accent:#7cc0ff;
-    }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      line-height: 1.6; color: var(--text); background: #000214;
-    }
-    /* 主容器 */
-    main {
-      max-width: 860px; margin: 64px auto; padding: 24px 20px;
-      background: var(--panel-bg); backdrop-filter: blur(3px);
-      border-radius: 14px; position: relative; z-index: 0;
-    }
-    header, footer { text-align: center; margin-bottom: 40px; }
-    nav a { margin: 0 8px; text-decoration: none; color: var(--link); }
-    section { margin-bottom: 40px; }
-    ul { padding-left: 20px; }
-    footer { color: #aaa; font-size: 14px; margin-top: 60px; }
-
-    /* 背景控制面板 */
-    .hud {
-      position: fixed; top: 14px; right: 14px; z-index: 10;
-      display: grid; gap: 8px; grid-template-columns: auto auto; align-items: center;
-      background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.18);
-      border-radius: 12px; padding: 10px 12px; backdrop-filter: blur(6px);
-      font-size: 13px;
-    }
-    .hud label { opacity: .9; }
-    .hud select, .hud input[type="range"], .hud button {
-      background: rgba(255,255,255,.06); color: var(--text);
-      border: 1px solid rgba(255,255,255,.2); border-radius: 8px;
-      padding: 6px 8px; font-size: 13px;
-    }
-    .hud button { cursor: pointer; }
-    .hud .wide { grid-column: 1 / -1; }
-    .hud .muted { opacity: .7; font-size: 12px; }
-    .hud .inline { display: inline-flex; gap:6px; align-items:center; }
+    :root { --panel-bg: rgba(0,0,0,.35); --text:#f0f0f0; --link:#66ccff; --accent:#7cc0ff; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+           line-height:1.6; color:var(--text); background:#000214; }
+    main { max-width:860px; margin:64px auto; padding:24px 20px; background:var(--panel-bg);
+           backdrop-filter:blur(3px); border-radius:14px; position:relative; z-index:0; }
+    header, footer { text-align:center; margin-bottom:40px; }
+    nav a { margin:0 8px; text-decoration:none; color:var(--link); }
+    section { margin-bottom:40px; } ul { padding-left:20px; }
+    footer { color:#aaa; font-size:14px; margin-top:60px; }
+    .hud{ position:fixed; top:14px; right:14px; z-index:10; display:grid; gap:8px; grid-template-columns:auto auto;
+          align-items:center; background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.18); border-radius:12px;
+          padding:10px 12px; backdrop-filter:blur(6px); font-size:13px; }
+    .hud select,.hud input[type="range"],.hud button{ background:rgba(255,255,255,.06); color:var(--text);
+          border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:6px 8px; font-size:13px; }
+    .hud .wide{ grid-column:1 / -1; } .hud .muted{ opacity:.7; font-size:12px; }
   </style>
 </head>
 <body>
-
-  <!-- 背景画布与遮罩 -->
   <canvas id="bg" style="position:fixed;inset:0;z-index:-2;display:block;"></canvas>
-  <div aria-hidden="true"
-       style="position:fixed;inset:0;
-              background:radial-gradient(ellipse at 50% 70%, rgba(0,10,30,.25), rgba(0,0,0,.62));
-              z-index:-1;"></div>
+  <div aria-hidden="true" style="position:fixed;inset:0;
+       background:radial-gradient(ellipse at 50% 70%, rgba(0,10,30,.25), rgba(0,0,0,.62)); z-index:-1;"></div>
 
-  <!-- 控制面板：模式/强度/开关（状态记忆） -->
   <div class="hud" role="region" aria-label="背景设置">
     <label for="mode">模式</label>
     <select id="mode" aria-label="背景模式选择">
@@ -63,15 +35,12 @@
       <option value="eclipse">B 掩星日食</option>
       <option value="emblem">C 三日凌空符号</option>
     </select>
-
     <label for="intensity">强度</label>
     <input id="intensity" type="range" min="0" max="100" step="1" value="60" aria-label="动画强度">
-
     <button id="toggle" class="wide" aria-pressed="true">关闭背景动画</button>
     <div class="muted wide">提示：设置已自动保存；系统“减少动态效果”将默认关闭动画。</div>
   </div>
 
-  <!-- 主体内容 -->
   <main>
     <header>
       <h1>Jinger</h1>
@@ -114,262 +83,94 @@
       <p>GitHub：<a href="https://github.com/jingeriiing" target="_blank">jinger</a></p>
     </section>
 
-    <footer>
-      <p>© 2025 Jinger. All rights reserved.</p>
-    </footer>
+    <footer><p>© 2025 Jinger. All rights reserved.</p></footer>
   </main>
 
-  <!-- 背景动画：三种可切换模式 -->
   <script>
   (function(){
     const canvas = document.getElementById('bg');
     const ctx = canvas.getContext('2d');
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    // 控件
     const selMode = document.getElementById('mode');
     const rangeIntensity = document.getElementById('intensity');
     const btnToggle = document.getElementById('toggle');
-
-    // 偏好与记忆
     const key = 'bg-state-v1';
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const saved = JSON.parse(localStorage.getItem(key) || 'null');
-    const state = {
-      running: saved?.running ?? (!prefersReduced),
-      mode:    saved?.mode    ?? 'chaos',
-      intensity: saved?.intensity ?? 60
-    };
+    const state = { running: saved?.running ?? (!prefersReduced), mode: saved?.mode ?? 'chaos', intensity: saved?.intensity ?? 60 };
 
-    // 绑定初值
-    selMode.value = state.mode;
-    rangeIntensity.value = state.intensity;
+    selMode.value = state.mode; rangeIntensity.value = state.intensity;
     btnToggle.setAttribute('aria-pressed', state.running);
     btnToggle.textContent = state.running ? '关闭背景动画' : '开启背景动画';
 
-    function persist(){
-      localStorage.setItem(key, JSON.stringify(state));
-    }
-
-    function resize(){
-      canvas.width  = Math.floor(innerWidth  * dpr);
-      canvas.height = Math.floor(innerHeight * dpr);
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-      if(!state.running){
-        ctx.fillStyle = '#000214'; ctx.fillRect(0,0,innerWidth,innerHeight);
-      }
-    }
+    function persist(){ localStorage.setItem(key, JSON.stringify(state)); }
+    function resize(){ canvas.width=Math.floor(innerWidth*dpr); canvas.height=Math.floor(innerHeight*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0); if(!state.running){ ctx.fillStyle='#000214'; ctx.fillRect(0,0,innerWidth,innerHeight);} }
     addEventListener('resize', resize, {passive:true}); resize();
 
-    // 共用：星尘初始化
-    function makeStars(n){
-      return Array.from({length: n}, () => ({
-        x: Math.random()*innerWidth,
-        y: Math.random()*innerHeight,
-        r: Math.random()*1.2 + 0.3,
-        a: Math.random()*Math.PI*2,
-        s: Math.random()*0.2 + 0.05
-      }));
-    }
+    function makeStars(n){ return Array.from({length:n},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.2+.3,a:Math.random()*Math.PI*2,s:Math.random()*.2+.05})); }
 
-    // 模式 A：混沌三体轨迹 + 光晕拖尾
-    function Chaos(){
-      const stars = makeStars(240);
-      const suns = [
-        {x: innerWidth*.52, y: innerHeight*.45, r: 3.2, hue: 40,  phase: Math.random()*6.28},
-        {x: innerWidth*.48, y: innerHeight*.52, r: 2.6, hue: 12,  phase: Math.random()*6.28},
-        {x: innerWidth*.55, y: innerHeight*.50, r: 2.0, hue: 200, phase: Math.random()*6.28},
-      ];
-      let t = 0;
-      return {
-        step(intensity){
-          const k = intensity/60; // 强度标定
-          t += 0.016*k;
-          // 拖尾清屏
-          ctx.fillStyle = 'rgba(0, 2, 10, 0.18)'; ctx.fillRect(0,0,innerWidth,innerHeight);
+    function Chaos(){ const stars=makeStars(240);
+      const suns=[{x:innerWidth*.52,y:innerHeight*.45,r:3.2,hue:40,phase:Math.random()*6.28},
+                  {x:innerWidth*.48,y:innerHeight*.52,r:2.6,hue:12,phase:Math.random()*6.28},
+                  {x:innerWidth*.55,y:innerHeight*.50,r:2.0,hue:200,phase:Math.random()*6.28}];
+      let t=0; return { step(intensity){ const k=intensity/60; t+=0.016*k;
+        ctx.fillStyle='rgba(0,2,10,0.18)'; ctx.fillRect(0,0,innerWidth,innerHeight);
+        for(const s of stars){ s.a+=s.s*(.8+.6*k); const tw=(Math.sin(s.a)*.5+.5)*.6+.2;
+          ctx.globalAlpha=tw; ctx.fillStyle='#cfd8ff'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();}
+        ctx.globalAlpha=1;
+        suns.forEach((s,i)=>{ const R1=(60+22*Math.sin(t*.7+i))*(.8+.5*k), R2=(90+18*Math.cos(t*.5+i*1.7))*(.8+.5*k);
+          s.x=innerWidth/2+Math.cos(t*.6+s.phase)*R2+Math.sin(t*.9+i)*R1*.6;
+          s.y=innerHeight/2+Math.sin(t*.6+s.phase)*R2*.7+Math.cos(t*.7+i)*R1*.5;
+          const grd=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,140);
+          grd.addColorStop(0,`hsla(${s.hue},95%,65%,.95)`); grd.addColorStop(.2,`hsla(${s.hue},90%,55%,.35)`); grd.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(s.x,s.y,140,0,Math.PI*2); ctx.fill();
+          ctx.fillStyle=`hsl(${s.hue},95%,90%)`; ctx.beginPath(); ctx.arc(s.x,s.y,s.r*3,0,Math.PI*2); ctx.fill();});
+        ctx.globalAlpha=.18; ctx.strokeStyle='rgba(180,200,255,.5)'; ctx.lineWidth=.6; ctx.beginPath();
+        suns.forEach((s,i)=>{ i?ctx.lineTo(s.x,s.y):ctx.moveTo(s.x,s.y);}); ctx.closePath(); ctx.stroke(); ctx.globalAlpha=1; } } }
 
-          // 星尘
-          for(const s of stars){
-            s.a += s.s * (0.8 + 0.6*k);
-            const tw = (Math.sin(s.a)*0.5 + 0.5) * 0.6 + 0.2;
-            ctx.globalAlpha = tw; ctx.fillStyle = '#cfd8ff';
-            ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
-          }
-          ctx.globalAlpha = 1;
+    function Eclipse(){ const stars=makeStars(180); let t=0, phase=Math.random()*6.28; const sweepR=Math.max(innerWidth,innerHeight)*.75;
+      return { step(intensity){ const k=intensity/60; t+=0.012*(.8+.8*k);
+        ctx.fillStyle='rgba(0,5,18,0.25)'; ctx.fillRect(0,0,innerWidth,innerHeight);
+        for(const s of stars){ s.a+=s.s*(.6+.4*k); const tw=(Math.sin(s.a)*.5+.5)*.5+.25;
+          ctx.globalAlpha=tw; ctx.fillStyle='#d6ddff'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill(); }
+        ctx.globalAlpha=1;
+        const cx=innerWidth*.5+Math.cos(t*.4+phase)*120, cy=innerHeight*.48+Math.sin(t*.4+phase)*80;
+        const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,260); grd.addColorStop(0,'rgba(255,240,200,.85)');
+        grd.addColorStop(.3,'rgba(255,200,120,.35)'); grd.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(cx,cy,260,0,Math.PI*2); ctx.fill();
+        const mx=innerWidth*.5+Math.cos(t*.7+phase)*220*(.8+.4*k), my=innerHeight*.5+Math.sin(t*.7+phase*1.2)*160*(.8+.4*k);
+        ctx.fillStyle='rgba(0,0,0,.9)'; ctx.beginPath(); ctx.arc(mx,my,sweepR*.32,0,Math.PI*2); ctx.fill();
+        ctx.globalAlpha=.25; ctx.fillStyle='rgba(80,120,255,.5)'; ctx.beginPath(); ctx.arc(innerWidth*.2,innerHeight*.8,200,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='rgba(255,120,80,.35)'; ctx.beginPath(); ctx.arc(innerWidth*.8,innerHeight*.2,180,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; } } }
 
-          // 三体近似
-          suns.forEach((s, i) => {
-            const R1 = (60 + 22*Math.sin(t*0.7 + i)) * (0.8 + 0.5*k);
-            const R2 = (90 + 18*Math.cos(t*0.5 + i*1.7)) * (0.8 + 0.5*k);
-            s.x = innerWidth/2  + Math.cos(t*0.6 + s.phase)*R2 + Math.sin(t*0.9 + i)*R1*0.6;
-            s.y = innerHeight/2 + Math.sin(t*0.6 + s.phase)*R2*0.7 + Math.cos(t*0.7 + i)*R1*0.5;
+    function Emblem(){ let t=0; return { step(intensity){ const k=intensity/60; t+=0.01*(.7+.9*k);
+      ctx.fillStyle='rgba(0,2,10,1)'; ctx.fillRect(0,0,innerWidth,innerHeight);
+      const cx=innerWidth/2, cy=innerHeight/2, R=Math.min(innerWidth,innerHeight)*.22, a=t*.6;
+      ctx.strokeStyle='rgba(160,200,255,.45)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+      for(let i=0;i<3;i++){ const ang=a+i*2*Math.PI/3, x=cx+Math.cos(ang)*R, y=cy+Math.sin(ang)*R;
+        const g=ctx.createRadialGradient(x,y,0,x,y,80); g.addColorStop(0,'rgba(180,220,255,.9)'); g.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,80,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='rgba(230,240,255,.95)'; ctx.beginPath(); ctx.arc(x,y,6+2*k,0,Math.PI*2); ctx.fill(); }
+      ctx.strokeStyle='rgba(120,160,255,.25)'; ctx.lineWidth=1; const tickR=R*1.12; ctx.beginPath();
+      for(let i=0;i<90;i++){ const ang=i*(Math.PI*2/90)+a*.6; const x1=cx+Math.cos(ang)*(tickR-6), y1=cy+Math.sin(ang)*(tickR-6);
+        const x2=cx+Math.cos(ang)*(tickR), y2=cy+Math.sin(ang)*(tickR); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);} ctx.stroke(); } } }
 
-            // 光晕
-            const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 140);
-            grd.addColorStop(0,   `hsla(${s.hue}, 95%, 65%, 0.95)`);
-            grd.addColorStop(0.2, `hsla(${s.hue}, 90%, 55%, 0.35)`);
-            grd.addColorStop(1,   'rgba(0,0,0,0)');
-            ctx.fillStyle = grd;
-            ctx.beginPath(); ctx.arc(s.x, s.y, 140, 0, Math.PI*2); ctx.fill();
+    const modes = {chaos:Chaos, eclipse:Eclipse, emblem:Emblem};
+    let engine = modes[state.mode](); let rafId=0;
 
-            // 核心
-            ctx.fillStyle = `hsl(${s.hue},95%,90%)`;
-            ctx.beginPath(); ctx.arc(s.x, s.y, s.r*3, 0, Math.PI*2); ctx.fill();
-          });
-
-          // 细线轨迹（提升壁纸观感）
-          ctx.globalAlpha = .18;
-          ctx.strokeStyle = 'rgba(180,200,255,.5)';
-          ctx.lineWidth = 0.6;
-          ctx.beginPath();
-          suns.forEach((s,i)=>{ i?ctx.lineTo(s.x,s.y):ctx.moveTo(s.x,s.y); });
-          ctx.closePath(); ctx.stroke();
-          ctx.globalAlpha = 1;
-        }
-      }
-    }
-
-    // 模式 B：掩星日食 + 星尘折射
-    function Eclipse(){
-      const stars = makeStars(180);
-      let t = 0, phase = Math.random()*6.28;
-      const sweepR = Math.max(innerWidth, innerHeight)*0.75;
-      return {
-        step(intensity){
-          const k = intensity/60;
-          t += 0.012*(0.8 + 0.8*k);
-          // 柔和清屏
-          ctx.fillStyle = 'rgba(0, 5, 18, 0.25)'; ctx.fillRect(0,0,innerWidth,innerHeight);
-
-          // 星尘（微折射）
-          for(const s of stars){
-            s.a += s.s*(0.6+0.4*k);
-            const tw = (Math.sin(s.a)*0.5 + 0.5)*0.5 + 0.25;
-            ctx.globalAlpha = tw;
-            ctx.fillStyle = '#d6ddff';
-            ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
-          }
-          ctx.globalAlpha = 1;
-
-          // 光源
-          const cx = innerWidth*0.5 + Math.cos(t*0.4+phase)*120;
-          const cy = innerHeight*0.48 + Math.sin(t*0.4+phase)*80;
-          const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, 260);
-          grd.addColorStop(0, 'rgba(255,240,200,.85)');
-          grd.addColorStop(0.3,'rgba(255,200,120,.35)');
-          grd.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.fillStyle = grd;
-          ctx.beginPath(); ctx.arc(cx, cy, 260, 0, Math.PI*2); ctx.fill();
-
-          // 掩星：一枚黑盘扫过
-          const mx = innerWidth*0.5 + Math.cos(t*0.7+phase)*220*(0.8+0.4*k);
-          const my = innerHeight*0.5 + Math.sin(t*0.7+phase*1.2)*160*(0.8+0.4*k);
-          ctx.fillStyle = 'rgba(0,0,0,.9)';
-          ctx.beginPath(); ctx.arc(mx, my, sweepR*0.32, 0, Math.PI*2); ctx.fill();
-
-          // 冷暖辉斑
-          ctx.globalAlpha = .25;
-          ctx.fillStyle = 'rgba(80,120,255,.5)';
-          ctx.beginPath(); ctx.arc(innerWidth*0.2, innerHeight*0.8, 200, 0, Math.PI*2); ctx.fill();
-          ctx.fillStyle = 'rgba(255,120,80,.35)';
-          ctx.beginPath(); ctx.arc(innerWidth*0.8, innerHeight*0.2, 180, 0, Math.PI*2); ctx.fill();
-          ctx.globalAlpha = 1;
-        }
-      }
-    }
-
-    // 模式 C：三日凌空符号（极简 UI 风）
-    function Emblem(){
-      let t = 0;
-      return {
-        step(intensity){
-          const k = intensity/60;
-          t += 0.01*(0.7+0.9*k);
-          // 清屏（无拖尾，保持极简）
-          ctx.fillStyle = 'rgba(0, 2, 10, 1)'; ctx.fillRect(0,0,innerWidth,innerHeight);
-
-          const cx = innerWidth/2, cy = innerHeight/2, R = Math.min(innerWidth,innerHeight)*0.22;
-          // 旋转角
-          const a = t*0.6;
-
-          // 主环
-          ctx.strokeStyle = 'rgba(160,200,255,.45)'; ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.stroke();
-
-          // 三个等距小圆
-          for(let i=0;i<3;i++){
-            const ang = a + i*2*Math.PI/3;
-            const x = cx + Math.cos(ang)*R;
-            const y = cy + Math.sin(ang)*R;
-            // 外晕
-            const g = ctx.createRadialGradient(x,y,0,x,y,80);
-            g.addColorStop(0,'rgba(180,220,255,.9)');
-            g.addColorStop(1,'rgba(0,0,0,0)');
-            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x,y,80,0,Math.PI*2); ctx.fill();
-            // 核心
-            ctx.fillStyle = 'rgba(230,240,255,.95)';
-            ctx.beginPath(); ctx.arc(x,y,6+2*k,0,Math.PI*2); ctx.fill();
-          }
-
-          // 细分仪刻度环
-          ctx.strokeStyle = 'rgba(120,160,255,.25)'; ctx.lineWidth = 1;
-          const tickR = R*1.12;
-          ctx.beginPath();
-          for(let i=0;i<90;i++){
-            const ang = i*(Math.PI*2/90)+a*0.6;
-            const x1 = cx + Math.cos(ang)*(tickR-6);
-            const y1 = cy + Math.sin(ang)*(tickR-6);
-            const x2 = cx + Math.cos(ang)*(tickR);
-            const y2 = cy + Math.sin(ang)*(tickR);
-            ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
-          }
-          ctx.stroke();
-        }
-      }
-    }
-
-    // 运行时装配
-    const modes = { chaos: Chaos, eclipse: Eclipse, emblem: Emblem };
-    let engine = modes[state.mode]();
-    let rafId = 0;
-
-    function loop(){
-      if(!state.running){ return; }
-      engine.step(Number(state.intensity));
-      rafId = requestAnimationFrame(loop);
-    }
-
-    function start(){
-      if(state.running) return;
-      state.running = true; persist();
-      btnToggle.setAttribute('aria-pressed','true');
-      btnToggle.textContent = '关闭背景动画';
-      loop();
-    }
-    function stop(){
-      if(!state.running) return;
-      state.running = false; persist();
-      btnToggle.setAttribute('aria-pressed','false');
-      btnToggle.textContent = '开启背景动画';
-      cancelAnimationFrame(rafId);
-      ctx.fillStyle = '#000214'; ctx.fillRect(0,0,innerWidth,innerHeight);
-    }
-
-    // 事件绑定
+    function loop(){ if(!state.running) return; engine.step(Number(state.intensity)); rafId=requestAnimationFrame(loop); }
+    function start(){ if(state.running) return; state.running=true; persist(); btnToggle.setAttribute('aria-pressed','true'); btnToggle.textContent='关闭背景动画'; loop(); }
+    function stop(){ if(!state.running) return; state.running=false; persist(); btnToggle.setAttribute('aria-pressed','false'); btnToggle.textContent='开启背景动画';
+      cancelAnimationFrame(rafId); ctx.fillStyle='#000214'; ctx.fillRect(0,0,innerWidth,innerHeight); }
     btnToggle.addEventListener('click', ()=> (state.running?stop():start()));
-    selMode.addEventListener('change', ()=>{
-      state.mode = selMode.value; persist();
-      // 立即切换引擎并清屏
-      engine = modes[state.mode](); ctx.fillStyle = '#000214'; ctx.fillRect(0,0,innerWidth,innerHeight);
-    });
-    rangeIntensity.addEventListener('input', ()=>{
-      state.intensity = Number(rangeIntensity.value); persist();
-    });
+    selMode.addEventListener('change', ()=>{ state.mode=selMode.value; persist(); engine=modes[state.mode](); ctx.fillStyle='#000214'; ctx.fillRect(0,0,innerWidth,innerHeight); });
+    rangeIntensity.addEventListener('input', ()=>{ state.intensity=Number(rangeIntensity.value); persist(); });
 
-    // 初始化
+    // 首帧初始化
     if(state.running){ loop(); } else { stop(); }
   })();
   </script>
 </body>
 </html>
-
+EOF
