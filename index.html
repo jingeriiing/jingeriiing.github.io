@@ -13,10 +13,18 @@
     }
 
     /* 层级：canvas(-2) < 渐变(-1) < 宇航员(0) < 主体(1) < 面板(2) */
-    .hud{ position:fixed; top:14px; right:14px; z-index:2;
+    #bg { position:fixed; inset:0; z-index:-2; display:block; width:100vw; height:100vh; }
+    .gradient-mask {
+      position:fixed; inset:0; z-index:-1;
+      background:radial-gradient(ellipse at 50% 55%, rgba(0,12,32,.28), rgba(0,0,0,.66));
+    }
+
+    .hud{
+      position:fixed; top:14px; right:14px; z-index:2;
       display:grid; gap:8px; grid-template-columns:auto auto; align-items:center;
       background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.18);
-      border-radius:12px; padding:10px 12px; backdrop-filter:blur(6px); font-size:13px; }
+      border-radius:12px; padding:10px 12px; backdrop-filter:blur(6px); font-size:13px;
+    }
     .hud select,.hud input[type="range"],.hud button{
       background:rgba(255,255,255,.06); color:var(--text);
       border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:6px 8px; font-size:13px;
@@ -51,11 +59,8 @@
 <body>
 
   <!-- 背景层 -->
-  <canvas id="bg" style="position:fixed;inset:0;z-index:-2;display:block;"></canvas>
-  <div aria-hidden="true"
-       style="position:fixed;inset:0;
-              background:radial-gradient(ellipse at 50% 55%, rgba(0,12,32,.28), rgba(0,0,0,.66));
-              z-index:-1;"></div>
+  <canvas id="bg"></canvas>
+  <div class="gradient-mask" aria-hidden="true"></div>
 
   <!-- 左上角宇航员（内联 SVG） -->
   <svg class="astronaut" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -89,7 +94,11 @@
   <!-- 控制面板 -->
   <div class="hud" role="region" aria-label="背景设置">
     <label for="mode">模式</label>
-    <select id="mode"><option value="chaos">A 混沌三体轨迹</option><option value="eclipse">B 掩星日食</option><option value="emblem">C 三日凌空符号</option></select>
+    <select id="mode">
+      <option value="chaos">A 混沌三体轨迹</option>
+      <option value="eclipse">B 掩星日食</option>
+      <option value="emblem">C 三日凌空符号</option>
+    </select>
     <label for="intensity">强度</label>
     <input id="intensity" type="range" min="0" max="100" step="1" value="60">
     <button id="toggle" class="wide" aria-pressed="true">关闭背景动画</button>
@@ -144,33 +153,36 @@
     </main>
   </div>
 
-  <!-- 背景动画（使用画布逻辑尺寸 W/H，确保真正居中） -->
+  <!-- 背景动画（以 CSS 尺寸为“逻辑坐标”，scale(dpr,dpr) 保证像素对齐） -->
   <script>
   (function(){
-    const cvs = document.getElementById('bg');
-    const ctx = cvs.getContext('2d');
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    const sel = id => document.getElementById(id);
-    const selMode = sel('mode'), rangeInt = sel('intensity'), btn = sel('toggle');
+    const selMode = document.getElementById('mode');
+    const rangeInt = document.getElementById('intensity');
+    const btn = document.getElementById('toggle');
 
     const key='bg-state-v1';
     const prefersReduced = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || false;
     let saved=null; try{ saved=JSON.parse(localStorage.getItem(key)||'null'); }catch(_){}
     const state={ running: saved?.running??(!prefersReduced), mode: saved?.mode??'chaos', intensity: saved?.intensity??60 };
 
-    // 画布逻辑尺寸（关键修正）：W/H = 画布像素尺寸 / dpr
+    // 画布 CSS 尺寸作为逻辑坐标；用 scale(dpr,dpr) 建立 1:1 映射
     let W=0, H=0;
     function resize(){
-      cvs.width = Math.floor(innerWidth * dpr);
-      cvs.height = Math.floor(innerHeight * dpr);
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-      W = cvs.width / dpr; H = cvs.height / dpr;
+      W = Math.max(1, Math.round(canvas.clientWidth));
+      H = Math.max(1, Math.round(canvas.clientHeight));
+      canvas.width  = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.scale(dpr, dpr);
       if(!state.running){ ctx.fillStyle='#000214'; ctx.fillRect(0,0,W,H); }
     }
     addEventListener('resize', resize, {passive:true}); resize();
 
-    // UI
+    // UI 初值与持久化
     selMode.value = state.mode; rangeInt.value = state.intensity;
     btn.setAttribute('aria-pressed', state.running);
     btn.textContent = state.running ? '关闭背景动画' : '开启背景动画';
@@ -179,7 +191,7 @@
     // 工具
     function stars(n){ return Array.from({length:n},()=>({ x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.2+.3, a:Math.random()*6.283, s:Math.random()*.2+.05 })); }
 
-    // 模式 A：混沌三体（以 W/2,H/2 为中心）
+    // 模式 A：混沌三体（中心）
     function Chaos(){
       const ss = stars(240);
       const suns = [
@@ -190,7 +202,6 @@
       let t=0;
       return { step(I){
         const k=I/60; t+=0.016*k;
-        // 清屏 + 中心增亮层
         ctx.fillStyle='rgba(0,2,10,0.18)'; ctx.fillRect(0,0,W,H);
         const cg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.min(W,H)*0.6);
         cg.addColorStop(0,'rgba(20,40,80,.14)'); cg.addColorStop(1,'rgba(0,0,0,0)');
@@ -218,7 +229,7 @@
       }};
     }
 
-    // 模式 B：掩星（以中心扫掠）
+    // 模式 B：掩星（中心扫掠）
     function Eclipse(){
       const ss = stars(180);
       let t=0, phase=Math.random()*6.283;
@@ -251,7 +262,6 @@
         const cx=W/2, cy=H/2, R=Math.min(W,H)*.22, a=t*.6;
 
         ctx.strokeStyle='rgba(160,200,255,.45)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.stroke();
-
         for(let i=0;i<3;i++){
           const ang=a+i*2*Math.PI/3, x=cx+Math.cos(ang)*R, y=cy+Math.sin(ang)*R;
           const grd=ctx.createRadialGradient(x,y,0,x,y,80); grd.addColorStop(0,'rgba(180,220,255,.9)'); grd.addColorStop(1,'rgba(0,0,0,0)');
