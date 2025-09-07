@@ -12,18 +12,29 @@
       line-height:1.6; color:var(--text); background:#000214;
     }
 
-    /* 层级：canvas(-2) < 渐变(-1) < 宇航员(0) < 主体(1) < 面板(2) */
+    /* 背景层 */
     #bg { position:fixed; inset:0; z-index:-2; display:block; width:100vw; height:100vh; }
     .gradient-mask {
       position:fixed; inset:0; z-index:-1;
       background:radial-gradient(ellipse at 50% 55%, rgba(0,12,32,.28), rgba(0,0,0,.66));
     }
 
+    /* 控制面板（可最小化） */
     .hud{
       position:fixed; top:14px; right:14px; z-index:2;
-      display:grid; gap:8px; grid-template-columns:auto auto; align-items:center;
+      display:grid; gap:10px; grid-template-columns: 1fr auto; align-items:center;
       background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.18);
       border-radius:12px; padding:10px 12px; backdrop-filter:blur(6px); font-size:13px;
+      min-width: 260px;
+    }
+    .hud-title{ font-weight:600; opacity:.95; }
+    .hud-minbtn{
+      background:rgba(255,255,255,.08); color:var(--text);
+      border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:4px 8px; cursor:pointer;
+    }
+    .hud-body{
+      grid-column:1 / -1;
+      display:grid; gap:8px; grid-template-columns:auto auto; align-items:center;
     }
     .hud select,.hud input[type="range"],.hud button{
       background:rgba(255,255,255,.06); color:var(--text);
@@ -32,6 +43,16 @@
     .hud .wide{ grid-column:1 / -1; }
     .hud .muted{ opacity:.7; font-size:12px; }
 
+    /* 折叠态：仅保留标题与按钮，主体隐藏并压缩宽度 */
+    .hud.collapsed{
+      grid-template-columns: 1fr auto;
+      min-width: auto; padding:8px 10px;
+    }
+    .hud.collapsed .hud-body{ display:none; }
+    .hud.collapsed .hud-title{ font-weight:600; opacity:.9; }
+    .hud.collapsed .hud-minbtn{ padding:2px 8px; }
+
+    /* 主体内容（正中） */
     .hero{
       min-height:100vh; display:flex; align-items:center; justify-content:center;
       padding:64px 16px; position:relative; z-index:1;
@@ -46,7 +67,7 @@
     ul{ padding-left:20px; }
     footer{ color:#aaa; font-size:14px; margin-top:44px; }
 
-    /* 宇航员：左上角漂浮、透传指针事件 */
+    /* 宇航员：左上角，白色填充改透明（仅描边+发光），不挡交互 */
     .astronaut{
       position:fixed; left:4vw; top:6vh; width:min(220px,26vw); z-index:0; pointer-events:none;
       opacity:.95; filter:drop-shadow(0 12px 24px rgba(0,0,0,.35));
@@ -62,47 +83,64 @@
   <canvas id="bg"></canvas>
   <div class="gradient-mask" aria-hidden="true"></div>
 
-  <!-- 左上角宇航员（内联 SVG） -->
+  <!-- 宇航员（白色填充改为透明：相关几何使用 fill="none" + stroke 保留轮廓） -->
   <svg class="astronaut" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
       <radialGradient id="gGlow" cx="50%" cy="45%" r="70%">
         <stop offset="0%" stop-color="rgba(180,220,255,.9)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/>
       </radialGradient>
-      <linearGradient id="gSuit" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#f4f7ff"/><stop offset="100%" stop-color="#cfd6e6"/>
-      </linearGradient>
+      <!-- 原“白色宇航服”改透明，这里保留定义但不再使用；轮廓以 stroke 呈现 -->
       <linearGradient id="gVisor" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0%" stop-color="#8fd3ff"/><stop offset="100%" stop-color="#003a7a"/>
       </linearGradient>
     </defs>
     <circle cx="100" cy="120" r="110" fill="url(#gGlow)"/>
-    <rect x="50" y="95" width="100" height="80" rx="12" fill="#aeb7c7" opacity=".9"/>
-    <circle cx="100" cy="70" r="46" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
+    <!-- 背包轮廓 -->
+    <rect x="50" y="95" width="100" height="80" rx="12" fill="none" stroke="#aeb7c7" stroke-width="2" opacity=".9"/>
+    <!-- 头盔外壳轮廓 -->
+    <circle cx="100" cy="70" r="46" fill="none" stroke="#9aa3b6" stroke-width="3"/>
+    <!-- 面罩保留（非白色） -->
     <ellipse cx="100" cy="70" rx="34" ry="28" fill="url(#gVisor)" stroke="#5b86ad" stroke-width="2"/>
     <path d="M80 58 C92 50 108 50 120 58" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="3" opacity=".6"/>
-    <rect x="62" y="110" width="76" height="80" rx="14" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
-    <rect x="78" y="128" width="44" height="28" rx="6" fill="#1a2540"/>
-    <circle cx="88" cy="142" r="4" fill="#ff6b6b"/><circle cx="100" cy="142" r="4" fill="#ffd166"/><circle cx="112" cy="142" r="4" fill="#6bffb2"/>
-    <path d="M62 128 q-22 10 -18 30 q4 16 22 10" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
-    <path d="M138 128 q22 10 18 30 q-4 16 -22 10" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
-    <rect x="68" y="190" width="24" height="44" rx="8" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
-    <rect x="108" y="190" width="24" height="44" rx="8" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
-    <rect x="62" y="230" width="36" height="16" rx="8" fill="#6b7a91"/><rect x="102" y="230" width="36" height="16" rx="8" fill="#6b7a91"/>
+    <!-- 身体轮廓 -->
+    <rect x="62" y="110" width="76" height="80" rx="14" fill="none" stroke="#9aa3b6" stroke-width="3"/>
+    <!-- 控制面板轮廓与指示灯（非白色） -->
+    <rect x="78" y="128" width="44" height="28" rx="6" fill="none" stroke="#1a2540" stroke-width="2"/>
+    <circle cx="88" cy="142" r="4" fill="#ff6b6b"/>
+    <circle cx="100" cy="142" r="4" fill="#ffd166"/>
+    <circle cx="112" cy="142" r="4" fill="#6bffb2"/>
+    <!-- 手臂轮廓 -->
+    <path d="M62 128 q-22 10 -18 30 q4 16 22 10" fill="none" stroke="#9aa3b6" stroke-width="3"/>
+    <path d="M138 128 q22 10 18 30 q-4 16 -22 10" fill="none" stroke="#9aa3b6" stroke-width="3"/>
+    <!-- 腿轮廓 -->
+    <rect x="68" y="190" width="24" height="44" rx="8" fill="none" stroke="#9aa3b6" stroke-width="3"/>
+    <rect x="108" y="190" width="24" height="44" rx="8" fill="none" stroke="#9aa3b6" stroke-width="3"/>
+    <!-- 靴子轮廓 -->
+    <rect x="62" y="230" width="36" height="16" rx="8" fill="none" stroke="#6b7a91" stroke-width="2"/>
+    <rect x="102" y="230" width="36" height="16" rx="8" fill="none" stroke="#6b7a91" stroke-width="2"/>
+    <!-- 安全绳（淡） -->
     <path d="M150 140 q40 10 30 36 q-10 24 -60 16" fill="none" stroke="rgba(160,190,255,.45)" stroke-width="2"/>
   </svg>
 
-  <!-- 控制面板 -->
-  <div class="hud" role="region" aria-label="背景设置">
-    <label for="mode">模式</label>
-    <select id="mode">
-      <option value="chaos">A 混沌三体轨迹</option>
-      <option value="eclipse">B 掩星日食</option>
-      <option value="emblem">C 三日凌空符号</option>
-    </select>
-    <label for="intensity">强度</label>
-    <input id="intensity" type="range" min="0" max="100" step="1" value="60">
-    <button id="toggle" class="wide" aria-pressed="true">关闭背景动画</button>
-    <div class="muted wide">提示：设置会保存；系统“减少动态效果”将默认关闭动画。</div>
+  <!-- 控制面板（可最小化） -->
+  <div class="hud" id="hud" role="region" aria-label="背景设置">
+    <div class="hud-title">背景设置</div>
+    <button id="hud-min" class="hud-minbtn" aria-expanded="true" aria-label="最小化面板">最小化</button>
+
+    <div class="hud-body">
+      <label for="mode">模式</label>
+      <select id="mode">
+        <option value="chaos">A 混沌三体轨迹</option>
+        <option value="eclipse">B 掩星日食</option>
+        <option value="emblem">C 三日凌空符号</option>
+      </select>
+
+      <label for="intensity">强度</label>
+      <input id="intensity" type="range" min="0" max="100" step="1" value="60">
+
+      <button id="toggle" class="wide" aria-pressed="true">关闭背景动画</button>
+      <div class="muted wide">提示：设置会保存；系统“减少动态效果”将默认关闭动画。</div>
+    </div>
   </div>
 
   <!-- 主体内容（中心） -->
@@ -153,23 +191,41 @@
     </main>
   </div>
 
-  <!-- 背景动画（以 CSS 尺寸为“逻辑坐标”，scale(dpr,dpr) 保证像素对齐） -->
+  <!-- 背景动画（以 CSS 尺寸为逻辑坐标，中心对齐；含面板最小化与状态持久化） -->
   <script>
   (function(){
     const canvas = document.getElementById('bg');
     const ctx = canvas.getContext('2d');
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
+    const hud = document.getElementById('hud');
+    const hudBtn = document.getElementById('hud-min');
+
     const selMode = document.getElementById('mode');
     const rangeInt = document.getElementById('intensity');
     const btn = document.getElementById('toggle');
 
     const key='bg-state-v1';
+    const keyHud='hud-collapsed';
     const prefersReduced = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || false;
     let saved=null; try{ saved=JSON.parse(localStorage.getItem(key)||'null'); }catch(_){}
     const state={ running: saved?.running??(!prefersReduced), mode: saved?.mode??'chaos', intensity: saved?.intensity??60 };
 
-    // 画布 CSS 尺寸作为逻辑坐标；用 scale(dpr,dpr) 建立 1:1 映射
+    // 面板折叠状态（持久化）
+    let collapsed = false;
+    try { collapsed = localStorage.getItem(keyHud) === '1'; } catch(_) {}
+    function applyHudCollapsed(){
+      hud.classList.toggle('collapsed', collapsed);
+      hudBtn.textContent = collapsed ? '展开' : '最小化';
+      hudBtn.setAttribute('aria-expanded', String(!collapsed));
+    }
+    function persistHudCollapsed(){
+      try { localStorage.setItem(keyHud, collapsed ? '1' : '0'); } catch(_) {}
+    }
+    hudBtn.addEventListener('click', ()=>{ collapsed = !collapsed; applyHudCollapsed(); persistHudCollapsed(); });
+    applyHudCollapsed();
+
+    // 画布逻辑尺寸
     let W=0, H=0;
     function resize(){
       W = Math.max(1, Math.round(canvas.clientWidth));
