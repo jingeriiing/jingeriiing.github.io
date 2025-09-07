@@ -5,149 +5,98 @@
   <title>Jinger - 个人主页</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root { --panel-bg: rgba(0,0,0,.35); --text:#f0f0f0; --link:#66ccff; --accent:#7cc0ff; }
-    html,body { height: 100%; }
+    :root { --panel-bg: rgba(0,0,0,.35); --text:#f0f0f0; --link:#66ccff; }
+    html,body { height:100%; }
     body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      line-height: 1.6; color: var(--text); background: #000214;
+      margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      line-height:1.6; color:var(--text); background:#000214;
     }
 
-    /* 让主体内容绝对居中呈现 */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 64px 16px;
-      position: relative;
-      z-index: 0;
+    /* 层级：canvas(-2) < 渐变(-1) < 宇航员(0) < 主体(1) < 面板(2) */
+    .hud{ position:fixed; top:14px; right:14px; z-index:2;
+      display:grid; gap:8px; grid-template-columns:auto auto; align-items:center;
+      background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.18);
+      border-radius:12px; padding:10px 12px; backdrop-filter:blur(6px); font-size:13px; }
+    .hud select,.hud input[type="range"],.hud button{
+      background:rgba(255,255,255,.06); color:var(--text);
+      border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:6px 8px; font-size:13px;
     }
-    main {
-      width: min(860px, 92vw);
-      padding: 28px 22px;
-      background: var(--panel-bg);
-      backdrop-filter: blur(4px);
-      border-radius: 14px;
-      box-shadow: 0 12px 40px rgba(0,0,0,.35);
-    }
-    header, footer { text-align: center; margin-bottom: 34px; }
-    nav a { margin: 0 8px; text-decoration: none; color: var(--link); }
-    section { margin-bottom: 32px; }
-    ul { padding-left: 20px; }
-    footer { color: #aaa; font-size: 14px; margin-top: 44px; }
+    .hud .wide{ grid-column:1 / -1; }
+    .hud .muted{ opacity:.7; font-size:12px; }
 
-    /* 右上角控制面板 */
-    .hud {
-      position: fixed; top: 14px; right: 14px; z-index: 10;
-      display: grid; gap: 8px; grid-template-columns: auto auto; align-items: center;
-      background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.18);
-      border-radius: 12px; padding: 10px 12px; backdrop-filter: blur(6px);
-      font-size: 13px;
+    .hero{
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      padding:64px 16px; position:relative; z-index:1;
     }
-    .hud label { opacity: .9; }
-    .hud select, .hud input[type="range"], .hud button {
-      background: rgba(255,255,255,.06); color: var(--text);
-      border: 1px solid rgba(255,255,255,.2); border-radius: 8px;
-      padding: 6px 8px; font-size: 13px;
+    main{
+      width:min(860px,92vw); padding:28px 22px; background:var(--panel-bg);
+      backdrop-filter:blur(4px); border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,.35);
     }
-    .hud button { cursor: pointer; }
-    .hud .wide { grid-column: 1 / -1; }
-    .hud .muted { opacity: .7; font-size: 12px; }
+    header,footer{ text-align:center; margin-bottom:34px; }
+    nav a{ margin:0 8px; text-decoration:none; color:var(--link); }
+    section{ margin-bottom:32px; }
+    ul{ padding-left:20px; }
+    footer{ color:#aaa; font-size:14px; margin-top:44px; }
 
-    /* 宇航员：置中漂浮，透传鼠标事件，不挡交互 */
-    .astronaut {
-      position: fixed; left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
-      width: min(240px, 35vw);
-      opacity: .95;
-      z-index: -0.5; /* 在内容下、背景上 */
-      pointer-events: none;
-      filter: drop-shadow(0 12px 24px rgba(0,0,0,.35));
+    /* 宇航员：左上角漂浮、透传指针事件 */
+    .astronaut{
+      position:fixed; left:4vw; top:6vh; width:min(220px,26vw); z-index:0; pointer-events:none;
+      opacity:.95; filter:drop-shadow(0 12px 24px rgba(0,0,0,.35));
       animation: float 6.5s ease-in-out infinite, yaw 9s ease-in-out infinite;
     }
-    @keyframes float {
-      0%,100% { transform: translate(-50%,-50%) translateY(-6px); }
-      50%     { transform: translate(-50%,-50%) translateY(6px); }
-    }
-    @keyframes yaw {
-      0%,100% { rotate: -2deg; }
-      50%     { rotate: 2deg; }
-    }
+    @keyframes float{ 0%,100%{ transform:translateY(-6px);} 50%{ transform:translateY(6px);} }
+    @keyframes yaw{ 0%,100%{ rotate:-2deg;} 50%{ rotate:2deg;} }
   </style>
 </head>
 <body>
 
-  <!-- 全屏背景画布 -->
+  <!-- 背景层 -->
   <canvas id="bg" style="position:fixed;inset:0;z-index:-2;display:block;"></canvas>
-  <!-- 将径向渐变中心上移到 55% 处，更靠近屏幕中部 -->
   <div aria-hidden="true"
        style="position:fixed;inset:0;
               background:radial-gradient(ellipse at 50% 55%, rgba(0,12,32,.28), rgba(0,0,0,.66));
               z-index:-1;"></div>
 
-  <!-- 中央宇航员（内联 SVG，轻量） -->
+  <!-- 左上角宇航员（内联 SVG） -->
   <svg class="astronaut" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <!-- 轻发光外圈 -->
     <defs>
       <radialGradient id="gGlow" cx="50%" cy="45%" r="70%">
-        <stop offset="0%" stop-color="rgba(180,220,255,.9)"/>
-        <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+        <stop offset="0%" stop-color="rgba(180,220,255,.9)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/>
       </radialGradient>
       <linearGradient id="gSuit" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#f4f7ff"/>
-        <stop offset="100%" stop-color="#cfd6e6"/>
+        <stop offset="0%" stop-color="#f4f7ff"/><stop offset="100%" stop-color="#cfd6e6"/>
       </linearGradient>
       <linearGradient id="gVisor" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#8fd3ff"/>
-        <stop offset="100%" stop-color="#003a7a"/>
+        <stop offset="0%" stop-color="#8fd3ff"/><stop offset="100%" stop-color="#003a7a"/>
       </linearGradient>
     </defs>
     <circle cx="100" cy="120" r="110" fill="url(#gGlow)"/>
-    <!-- 背包 -->
     <rect x="50" y="95" width="100" height="80" rx="12" fill="#aeb7c7" opacity=".9"/>
-    <!-- 头盔外壳 -->
     <circle cx="100" cy="70" r="46" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
-    <!-- 面罩 -->
     <ellipse cx="100" cy="70" rx="34" ry="28" fill="url(#gVisor)" stroke="#5b86ad" stroke-width="2"/>
     <path d="M80 58 C92 50 108 50 120 58" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="3" opacity=".6"/>
-    <!-- 身体 -->
     <rect x="62" y="110" width="76" height="80" rx="14" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
-    <!-- 控制面板 -->
     <rect x="78" y="128" width="44" height="28" rx="6" fill="#1a2540"/>
-    <circle cx="88" cy="142" r="4" fill="#ff6b6b"/>
-    <circle cx="100" cy="142" r="4" fill="#ffd166"/>
-    <circle cx="112" cy="142" r="4" fill="#6bffb2"/>
-    <!-- 手臂 -->
+    <circle cx="88" cy="142" r="4" fill="#ff6b6b"/><circle cx="100" cy="142" r="4" fill="#ffd166"/><circle cx="112" cy="142" r="4" fill="#6bffb2"/>
     <path d="M62 128 q-22 10 -18 30 q4 16 22 10" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
     <path d="M138 128 q22 10 18 30 q-4 16 -22 10" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
-    <!-- 腿 -->
     <rect x="68" y="190" width="24" height="44" rx="8" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
     <rect x="108" y="190" width="24" height="44" rx="8" fill="url(#gSuit)" stroke="#9aa3b6" stroke-width="3"/>
-    <!-- 靴子 -->
-    <rect x="62" y="230" width="36" height="16" rx="8" fill="#6b7a91"/>
-    <rect x="102" y="230" width="36" height="16" rx="8" fill="#6b7a91"/>
-    <!-- 安全绳（淡） -->
+    <rect x="62" y="230" width="36" height="16" rx="8" fill="#6b7a91"/><rect x="102" y="230" width="36" height="16" rx="8" fill="#6b7a91"/>
     <path d="M150 140 q40 10 30 36 q-10 24 -60 16" fill="none" stroke="rgba(160,190,255,.45)" stroke-width="2"/>
   </svg>
 
-  <!-- 控制面板：模式/强度/开关（状态记忆） -->
+  <!-- 控制面板 -->
   <div class="hud" role="region" aria-label="背景设置">
     <label for="mode">模式</label>
-    <select id="mode" aria-label="背景模式选择">
-      <option value="chaos">A 混沌三体轨迹</option>
-      <option value="eclipse">B 掩星日食</option>
-      <option value="emblem">C 三日凌空符号</option>
-    </select>
-
+    <select id="mode"><option value="chaos">A 混沌三体轨迹</option><option value="eclipse">B 掩星日食</option><option value="emblem">C 三日凌空符号</option></select>
     <label for="intensity">强度</label>
-    <input id="intensity" type="range" min="0" max="100" step="1" value="60" aria-label="动画强度">
-
+    <input id="intensity" type="range" min="0" max="100" step="1" value="60">
     <button id="toggle" class="wide" aria-pressed="true">关闭背景动画</button>
-    <div class="muted wide">提示：设置已自动保存；系统“减少动态效果”将默认关闭动画。</div>
+    <div class="muted wide">提示：设置会保存；系统“减少动态效果”将默认关闭动画。</div>
   </div>
 
-  <!-- 主体内容（正中呈现） -->
+  <!-- 主体内容（中心） -->
   <div class="hero">
     <main>
       <header>
@@ -195,167 +144,133 @@
     </main>
   </div>
 
-  <!-- 背景动画：三种可切换模式（中心聚焦 + 稳定启动） -->
+  <!-- 背景动画（使用画布逻辑尺寸 W/H，确保真正居中） -->
   <script>
   (function(){
-    const canvas = document.getElementById('bg');
-    const ctx = canvas.getContext('2d');
+    const cvs = document.getElementById('bg');
+    const ctx = cvs.getContext('2d');
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    const selMode = document.getElementById('mode');
-    const rangeIntensity = document.getElementById('intensity');
-    const btnToggle = document.getElementById('toggle');
+    const sel = id => document.getElementById(id);
+    const selMode = sel('mode'), rangeInt = sel('intensity'), btn = sel('toggle');
 
-    const key = 'bg-state-v1';
+    const key='bg-state-v1';
     const prefersReduced = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || false;
-    let saved = null; try { saved = JSON.parse(localStorage.getItem(key) || 'null'); } catch (_) {}
-    const state = { running: saved?.running ?? (!prefersReduced), mode: saved?.mode ?? 'chaos', intensity: saved?.intensity ?? 60 };
+    let saved=null; try{ saved=JSON.parse(localStorage.getItem(key)||'null'); }catch(_){}
+    const state={ running: saved?.running??(!prefersReduced), mode: saved?.mode??'chaos', intensity: saved?.intensity??60 };
 
-    // UI 初始化
-    selMode.value = state.mode;
-    rangeIntensity.value = state.intensity;
-    btnToggle.setAttribute('aria-pressed', state.running);
-    btnToggle.textContent = state.running ? '关闭背景动画' : '开启背景动画';
-
-    function persist(){ try { localStorage.setItem(key, JSON.stringify(state)); } catch(_){} }
-
+    // 画布逻辑尺寸（关键修正）：W/H = 画布像素尺寸 / dpr
+    let W=0, H=0;
     function resize(){
-      canvas.width = Math.floor(innerWidth * dpr);
-      canvas.height = Math.floor(innerHeight * dpr);
+      cvs.width = Math.floor(innerWidth * dpr);
+      cvs.height = Math.floor(innerHeight * dpr);
       ctx.setTransform(dpr,0,0,dpr,0,0);
-      if(!state.running){ ctx.fillStyle = '#000214'; ctx.fillRect(0,0,innerWidth,innerHeight); }
+      W = cvs.width / dpr; H = cvs.height / dpr;
+      if(!state.running){ ctx.fillStyle='#000214'; ctx.fillRect(0,0,W,H); }
     }
     addEventListener('resize', resize, {passive:true}); resize();
 
-    // 星尘
-    function makeStars(n){
-      return Array.from({length:n}, ()=>({
-        x: Math.random()*innerWidth,
-        y: Math.random()*innerHeight,
-        r: Math.random()*1.2 + 0.3,
-        a: Math.random()*Math.PI*2,
-        s: Math.random()*0.2 + 0.05
-      }));
-    }
+    // UI
+    selMode.value = state.mode; rangeInt.value = state.intensity;
+    btn.setAttribute('aria-pressed', state.running);
+    btn.textContent = state.running ? '关闭背景动画' : '开启背景动画';
+    function persist(){ try{ localStorage.setItem(key, JSON.stringify(state)); }catch(_){} }
 
-    // 模式 A：混沌三体（中心权重更高）
+    // 工具
+    function stars(n){ return Array.from({length:n},()=>({ x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.2+.3, a:Math.random()*6.283, s:Math.random()*.2+.05 })); }
+
+    // 模式 A：混沌三体（以 W/2,H/2 为中心）
     function Chaos(){
-      const stars = makeStars(240);
+      const ss = stars(240);
       const suns = [
-        {x: innerWidth*.5, y: innerHeight*.5, r: 3.2, hue: 40,  phase: Math.random()*6.28},
-        {x: innerWidth*.5, y: innerHeight*.5, r: 2.6, hue: 12,  phase: Math.random()*6.28},
-        {x: innerWidth*.5, y: innerHeight*.5, r: 2.0, hue: 200, phase: Math.random()*6.28},
+        {x: W*.5, y:H*.5, r:3.2, hue:40,  phase:Math.random()*6.283},
+        {x: W*.5, y:H*.5, r:2.6, hue:12,  phase:Math.random()*6.283},
+        {x: W*.5, y:H*.5, r:2.0, hue:200, phase:Math.random()*6.283},
       ];
-      let t = 0;
-      return {
-        step(intensity){
-          const k = intensity/60; t += 0.016*k;
-          // 中心增亮层
-          const cg = ctx.createRadialGradient(innerWidth/2, innerHeight/2, 0, innerWidth/2, innerHeight/2, Math.min(innerWidth,innerHeight)*0.6);
-          cg.addColorStop(0,'rgba(20,40,80,.14)'); cg.addColorStop(1,'rgba(0,0,0,0)');
-          ctx.fillStyle = 'rgba(0, 2, 10, 0.18)'; ctx.fillRect(0,0,innerWidth,innerHeight);
-          ctx.fillStyle = cg; ctx.fillRect(0,0,innerWidth,innerHeight);
+      let t=0;
+      return { step(I){
+        const k=I/60; t+=0.016*k;
+        // 清屏 + 中心增亮层
+        ctx.fillStyle='rgba(0,2,10,0.18)'; ctx.fillRect(0,0,W,H);
+        const cg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.min(W,H)*0.6);
+        cg.addColorStop(0,'rgba(20,40,80,.14)'); cg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=cg; ctx.fillRect(0,0,W,H);
 
-          for(const s of stars){
-            s.a += s.s*(.8+.6*k);
-            const tw = (Math.sin(s.a)*.5+.5)*.6+.2;
-            ctx.globalAlpha = tw; ctx.fillStyle = '#cfd8ff';
-            ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
-          }
-          ctx.globalAlpha = 1;
+        for(const s of ss){ s.a+=s.s*(.8+.6*k); const tw=(Math.sin(s.a)*.5+.5)*.6+.2;
+          ctx.globalAlpha=tw; ctx.fillStyle='#cfd8ff'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.283); ctx.fill(); }
+        ctx.globalAlpha=1;
 
-          suns.forEach((s,i)=>{
-            const R1 = (46 + 18*Math.sin(t*.9 + i))*(.9+.6*k);
-            const R2 = (68 + 14*Math.cos(t*.7 + i*1.7))*(.9+.6*k);
-            s.x = innerWidth/2  + Math.cos(t*.7 + s.phase)*R2 + Math.sin(t*1.1 + i)*R1*.55;
-            s.y = innerHeight/2 + Math.sin(t*.7 + s.phase)*R2*.7 + Math.cos(t*.9 + i)*R1*.5;
+        suns.forEach((s,i)=>{
+          const R1=(46+18*Math.sin(t*.9+i))*(.9+.6*k);
+          const R2=(68+14*Math.cos(t*.7+i*1.7))*(.9+.6*k);
+          s.x=W/2+Math.cos(t*.7+s.phase)*R2+Math.sin(t*1.1+i)*R1*.55;
+          s.y=H/2+Math.sin(t*.7+s.phase)*R2*.7+Math.cos(t*.9+i)*R1*.5;
 
-            const grd = ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,130);
-            grd.addColorStop(0,`hsla(${s.hue},95%,65%,.95)`); grd.addColorStop(.22,`hsla(${s.hue},90%,55%,.35)`); grd.addColorStop(1,'rgba(0,0,0,0)');
-            ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(s.x,s.y,130,0,Math.PI*2); ctx.fill();
+          const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,130);
+          g.addColorStop(0,`hsla(${s.hue},95%,65%,.95)`); g.addColorStop(.22,`hsla(${s.hue},90%,55%,.35)`); g.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=g; ctx.beginPath(); ctx.arc(s.x,s.y,130,0,6.283); ctx.fill();
 
-            ctx.fillStyle = `hsl(${s.hue},95%,90%)`;
-            ctx.beginPath(); ctx.arc(s.x,s.y,s.r*3,0,Math.PI*2); ctx.fill();
-          });
+          ctx.fillStyle=`hsl(${s.hue},95%,90%)`; ctx.beginPath(); ctx.arc(s.x,s.y,s.r*3,0,6.283); ctx.fill();
+        });
 
-          // 中心轨迹线
-          ctx.globalAlpha = .22; ctx.strokeStyle = 'rgba(180,200,255,.55)'; ctx.lineWidth = .7;
-          ctx.beginPath();
-          suns.forEach((s,i)=>{ i?ctx.lineTo(s.x,s.y):ctx.moveTo(s.x,s.y); });
-          ctx.closePath(); ctx.stroke(); ctx.globalAlpha = 1;
-        }
-      }
+        ctx.globalAlpha=.22; ctx.strokeStyle='rgba(180,200,255,.55)'; ctx.lineWidth=.7;
+        ctx.beginPath(); suns.forEach((s,i)=>{ i?ctx.lineTo(s.x,s.y):ctx.moveTo(s.x,s.y); }); ctx.closePath(); ctx.stroke(); ctx.globalAlpha=1;
+      }};
     }
 
-    // 模式 B：掩星（中心扫掠）
+    // 模式 B：掩星（以中心扫掠）
     function Eclipse(){
-      const stars = makeStars(180);
-      let t=0, phase=Math.random()*6.28;
-      const sweepR = Math.min(innerWidth, innerHeight)*0.38;
-      return {
-        step(intensity){
-          const k=intensity/60; t += 0.012*(.8+.8*k);
-          ctx.fillStyle='rgba(0,5,18,.25)'; ctx.fillRect(0,0,innerWidth,innerHeight);
+      const ss = stars(180);
+      let t=0, phase=Math.random()*6.283;
+      const sweepR = Math.min(W,H)*0.38;
+      return { step(I){
+        const k=I/60; t+=0.012*(.8+.8*k);
+        ctx.fillStyle='rgba(0,5,18,.25)'; ctx.fillRect(0,0,W,H);
 
-          for(const s of stars){
-            s.a += s.s*(.6+.4*k);
-            const tw = (Math.sin(s.a)*.5+.5)*.5+.25;
-            ctx.globalAlpha = tw; ctx.fillStyle='#d6ddff';
-            ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
-          }
-          ctx.globalAlpha=1;
+        for(const s of ss){ s.a+=s.s*(.6+.4*k); const tw=(Math.sin(s.a)*.5+.5)*.5+.25;
+          ctx.globalAlpha=tw; ctx.fillStyle='#d6ddff'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.283); ctx.fill(); }
+        ctx.globalAlpha=1;
 
-          const cx = innerWidth/2, cy = innerHeight/2;
-          const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(innerWidth,innerHeight)*.55);
-          g.addColorStop(0,'rgba(255,240,200,.75)');
-          g.addColorStop(.28,'rgba(255,200,120,.28)');
-          g.addColorStop(1,'rgba(0,0,0,0)');
-          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, Math.min(innerWidth,innerHeight)*.55, 0, Math.PI*2); ctx.fill();
+        const cx=W/2, cy=H/2;
+        const g=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.min(W,H)*.55);
+        g.addColorStop(0,'rgba(255,240,200,.75)'); g.addColorStop(.28,'rgba(255,200,120,.28)'); g.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cx,cy,Math.min(W,H)*.55,0,6.283); ctx.fill();
 
-          const mx = cx + Math.cos(t*.7+phase)* (Math.min(innerWidth,innerHeight)*.22)*(.8+.4*k);
-          const my = cy + Math.sin(t*.7+phase*1.2)* (Math.min(innerWidth,innerHeight)*.16)*(.8+.4*k);
-          ctx.fillStyle='rgba(0,0,0,.9)';
-          ctx.beginPath(); ctx.arc(mx, my, sweepR, 0, Math.PI*2); ctx.fill();
-        }
-      }
+        const mx = cx + Math.cos(t*.7+phase) * (Math.min(W,H)*.22) * (.8+.4*k);
+        const my = cy + Math.sin(t*.7+phase*1.2) * (Math.min(W,H)*.16) * (.8+.4*k);
+        ctx.fillStyle='rgba(0,0,0,.9)'; ctx.beginPath(); ctx.arc(mx,my,sweepR,0,6.283); ctx.fill();
+      }};
     }
 
-    // 模式 C：符号（本就居中）
+    // 模式 C：符号（中心）
     function Emblem(){
       let t=0;
-      return {
-        step(intensity){
-          const k=intensity/60; t += 0.01*(.7+.9*k);
-          ctx.fillStyle='rgba(0,2,10,1)'; ctx.fillRect(0,0,innerWidth,innerHeight);
-          const cx=innerWidth/2, cy=innerHeight/2, R=Math.min(innerWidth,innerHeight)*.22, a=t*.6;
-          ctx.strokeStyle='rgba(160,200,255,.45)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
-          for(let i=0;i<3;i++){
-            const ang=a+i*2*Math.PI/3, x=cx+Math.cos(ang)*R, y=cy+Math.sin(ang)*R;
-            const grd=ctx.createRadialGradient(x,y,0,x,y,80); grd.addColorStop(0,'rgba(180,220,255,.9)'); grd.addColorStop(1,'rgba(0,0,0,0)');
-            ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(x,y,80,0,Math.PI*2); ctx.fill();
-            ctx.fillStyle='rgba(230,240,255,.95)'; ctx.beginPath(); ctx.arc(x,y,6+2*k,0,Math.PI*2); ctx.fill();
-          }
+      return { step(I){
+        const k=I/60; t+=0.01*(.7+.9*k);
+        ctx.fillStyle='rgba(0,2,10,1)'; ctx.fillRect(0,0,W,H);
+        const cx=W/2, cy=H/2, R=Math.min(W,H)*.22, a=t*.6;
+
+        ctx.strokeStyle='rgba(160,200,255,.45)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.stroke();
+
+        for(let i=0;i<3;i++){
+          const ang=a+i*2*Math.PI/3, x=cx+Math.cos(ang)*R, y=cy+Math.sin(ang)*R;
+          const grd=ctx.createRadialGradient(x,y,0,x,y,80); grd.addColorStop(0,'rgba(180,220,255,.9)'); grd.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(x,y,80,0,6.283); ctx.fill();
+          ctx.fillStyle='rgba(230,240,255,.95)'; ctx.beginPath(); ctx.arc(x,y,6+2*k,0,6.283); ctx.fill();
         }
-      }
+      }};
     }
 
-    const modes = { chaos: Chaos, eclipse: Eclipse, emblem: Emblem };
-    let engine = modes[state.mode]();
-    let rafId = 0;
+    const modes={ chaos:Chaos, eclipse:Eclipse, emblem:Emblem };
+    let engine=modes[state.mode](), rafId=0;
 
-    function loop(){ if(!state.running) return; engine.step(Number(state.intensity)); rafId = requestAnimationFrame(loop); }
-    function start(){ if(state.running) return; state.running=true; persist(); btnToggle.setAttribute('aria-pressed','true'); btnToggle.textContent='关闭背景动画'; cancelAnimationFrame(rafId); loop(); }
-    function stop(){ if(!state.running) return; state.running=false; persist(); btnToggle.setAttribute('aria-pressed','false'); btnToggle.textContent='开启背景动画'; cancelAnimationFrame(rafId); ctx.fillStyle='#000214'; ctx.fillRect(0,0,innerWidth,innerHeight); }
+    function loop(){ if(!state.running) return; engine.step(Number(state.intensity)); rafId=requestAnimationFrame(loop); }
+    function start(){ if(state.running) return; state.running=true; persist(); btn.setAttribute('aria-pressed','true'); btn.textContent='关闭背景动画'; cancelAnimationFrame(rafId); loop(); }
+    function stop(){ if(!state.running) return; state.running=false; persist(); btn.setAttribute('aria-pressed','false'); btn.textContent='开启背景动画'; cancelAnimationFrame(rafId); ctx.fillStyle='#000214'; ctx.fillRect(0,0,W,H); }
 
-    btnToggle.addEventListener('click', ()=> (state.running?stop():start()));
-    selMode.addEventListener('change', ()=>{
-      state.mode = selMode.value; persist();
-      cancelAnimationFrame(rafId);
-      engine = modes[state.mode]();
-      ctx.fillStyle = '#000214'; ctx.fillRect(0,0,innerWidth,innerHeight);
-      if (state.running) loop();
-    });
-    rangeIntensity.addEventListener('input', ()=>{ state.intensity = Number(rangeIntensity.value); persist(); });
+    btn.addEventListener('click',()=> (state.running?stop():start()));
+    selMode.addEventListener('change',()=>{ state.mode=selMode.value; persist(); cancelAnimationFrame(rafId); engine=modes[state.mode](); ctx.fillStyle='#000214'; ctx.fillRect(0,0,W,H); if(state.running) loop();});
+    rangeInt.addEventListener('input',()=>{ state.intensity=Number(rangeInt.value); persist(); });
 
     if(state.running){ loop(); } else { stop(); }
   })();
