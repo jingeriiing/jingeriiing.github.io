@@ -25,7 +25,7 @@ p { margin: 0 0 20px; }
 .coauthors, .subtle, .meta { color: var(--muted); }
 .coauthors { font-size: 18px; margin-bottom: 10px; }
 .meta { font-size: 16px; }
-.index-page .layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 60px; padding-top: 40px; }
+.index-page .layout { max-width: 1040px; padding-top: 40px; }
 .home-title { font-size: 34px; font-weight: 400; font-variant: small-caps; line-height: 1.25; margin: 0 0 32px; }
 .profile { padding-top: 6px; font-size: 17px; }
 .affiliation { line-height: 1.75; }
@@ -71,8 +71,7 @@ footer { max-width: 1200px; padding: 22px 28px; margin: auto; display: flex; jus
   nav a { padding: 5px 8px; }
   nav a + a::before { left: -8px; }
   .layout { padding: 28px 22px 48px; }
-  .index-page .layout { display: flex; flex-direction: column; gap: 34px; padding-top: 22px; }
-  .index-page main { order: -1; }
+  .index-page .layout { padding-top: 22px; }
   .profile { border-top: 1px solid var(--line); padding-top: 26px; }
   .profile-rule { margin: 18px 0; }
   .home-title { font-size: 30px; margin-bottom: 24px; }
@@ -101,6 +100,5 @@ footer { max-width: 1200px; padding: 22px 28px; margin: auto; display: flex; jus
 }
 </style></head>
 <body class="index-page"><a class="skip" href="#main">Skip to content</a><div class="shell"><header class="masthead"><a class="brand" href="index.html">Jing Guo</a><nav aria-label="Main navigation"><a href="index.html" aria-current="page">Home</a><a href="cv.html">CV</a><a href="research.html">Research</a><a href="reading.html">Reading</a></nav></header>
-<div class="layout"><aside class="profile" aria-label="Affiliation and contact"><p class="affiliation">M.S. Student in Finance<br>PBC School of Finance<br>Tsinghua University</p><hr class="profile-rule"><div class="contact"><h2>Contact information</h2><a href="mailto:guoj.24@pbcsf.tsinghua.edu.cn">guoj.24@pbcsf.tsinghua.edu.cn</a><a href="CV.pdf">Curriculum Vitae (PDF)</a></div><hr class="profile-rule"><p class="interests">Outside of research: biographies and history, badminton, billiards, hiking, and video games.</p></aside>
-<main id="main"><h1 class="home-title">Jing Guo</h1><p class="lede">I am a master's student in Finance at the PBC School of Finance, Tsinghua University.</p><p>I am visiting the National University of Singapore from August to December 2026. Previously, I received my B.S. in Financial Engineering from the Central University of Finance and Economics.</p><p><strong>Research interests:</strong> My current research includes structural-change testing in quantile regression, empirical Bayes methods for firm-specific production technologies, and machine learning for tail risk.</p><p>You can find details of my work on the <a href="research.html">Research</a> page and in my <a href="CV.pdf">CV</a>.</p><h2>Working Paper</h2><article class="paper"><h3>Testing for Structural Changes in Factor-Augmented Quantile Regression via Discrete Fourier Transform</h3><p class="coauthors">with Xia Wang and Lingyun Zhou</p><p>Fourier-based tests for structural changes in factor-augmented quantile regression, with applications to U.S. macroeconomic panels.</p><details><summary>Research summary</summary><p>This project develops tests that allow for general forms of coefficient instability at a given conditional quantile. It establishes asymptotic properties and bootstrap validity with PCA-estimated latent factors, evaluates finite-sample size and power using Monte Carlo simulations, and examines structural-change patterns across frequencies in monthly and quarterly U.S. macroeconomic panels.</p></details></article><h2>Education</h2><ul class="education"><li><strong>Tsinghua University</strong><br>PBC School of Finance · M.S. in Finance<div class="meta">September 2024 – June 2027 (expected)</div></li><li><strong>National University of Singapore</strong><br>Visiting Graduate Student<div class="meta">August – December 2026</div></li><li><strong>Central University of Finance and Economics</strong><br>School of Finance · B.S. in Financial Engineering<div class="meta">September 2020 – June 2024</div></li></ul><h2>Beyond Research</h2><p>I enjoy reading biographies and history. My <a href="reading.html">Reading</a> page brings together books about people and the times they lived in.</p></main>
+<div class="layout"><main id="main"><h1 class="home-title">Jing Guo</h1><p class="lede">I am a master's student in Finance at the PBC School of Finance, Tsinghua University.</p><p>I am visiting the National University of Singapore from August to December 2026. Previously, I received my B.S. in Financial Engineering from the Central University of Finance and Economics.</p><p><strong>Research interests:</strong> My current research includes structural-change testing in quantile regression, empirical Bayes methods for firm-specific production technologies, and machine learning for tail risk.</p><p>You can find details of my work on the <a href="research.html">Research</a> page and in my <a href="CV.pdf">CV</a>.</p><h2>Beyond Research</h2><p>I enjoy reading biographies and history. My <a href="reading.html">Reading</a> page brings together books about people and the times they lived in.</p></main>
 </div><footer><span>© 2026 Jing Guo</span><span><a href="mailto:guoj.24@pbcsf.tsinghua.edu.cn">Get in touch</a></span></footer></div></body></html>
