@@ -1,345 +1,106 @@
 <!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <title>Jinger - 个人主页</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    :root { --panel-bg: rgba(0,0,0,.35); --text:#f0f0f0; --link:#66ccff; }
-    html,body { height:100%; }
-    body {
-      margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-      line-height:1.6; color:var(--text); background:#000214;
-    }
-
-    /* 背景层 */
-    #bg { position:fixed; inset:0; z-index:-2; display:block; width:100vw; height:100vh; }
-    .gradient-mask {
-      position:fixed; inset:0; z-index:-1;
-      background:radial-gradient(ellipse at 50% 55%, rgba(0,12,32,.28), rgba(0,0,0,.66));
-    }
-
-    /* 控制面板（可最小化） */
-    .hud{
-      position:fixed; top:14px; right:14px; z-index:2;
-      display:grid; gap:10px; grid-template-columns: 1fr auto; align-items:center;
-      background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.18);
-      border-radius:12px; padding:10px 12px; backdrop-filter:blur(6px); font-size:13px;
-      min-width: 260px;
-    }
-    .hud-title{ font-weight:600; opacity:.95; }
-    .hud-minbtn{
-      background:rgba(255,255,255,.08); color:var(--text);
-      border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:4px 8px; cursor:pointer;
-    }
-    .hud-body{
-      grid-column:1 / -1;
-      display:grid; gap:8px; grid-template-columns:auto auto; align-items:center;
-    }
-    .hud select,.hud input[type="range"],.hud button{
-      background:rgba(255,255,255,.06); color:var(--text);
-      border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:6px 8px; font-size:13px;
-    }
-    .hud .wide{ grid-column:1 / -1; }
-    .hud .muted{ opacity:.7; font-size:12px; }
-
-    /* 折叠态：仅保留标题与按钮，主体隐藏并压缩宽度 */
-    .hud.collapsed{
-      grid-template-columns: 1fr auto;
-      min-width: auto; padding:8px 10px;
-    }
-    .hud.collapsed .hud-body{ display:none; }
-    .hud.collapsed .hud-title{ font-weight:600; opacity:.9; }
-    .hud.collapsed .hud-minbtn{ padding:2px 8px; }
-
-    /* 主体内容（正中） */
-    .hero{
-      min-height:100vh; display:flex; align-items:center; justify-content:center;
-      padding:64px 16px; position:relative; z-index:1;
-    }
-    main{
-      width:min(860px,92vw); padding:28px 22px; background:var(--panel-bg);
-      backdrop-filter:blur(4px); border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,.35);
-    }
-    header,footer{ text-align:center; margin-bottom:34px; }
-    nav a{ margin:0 8px; text-decoration:none; color:var(--link); }
-    section{ margin-bottom:32px; }
-    ul{ padding-left:20px; }
-    footer{ color:#aaa; font-size:14px; margin-top:44px; }
-
-    /* 宇航员：左上角，白色填充改透明（仅描边+发光），不挡交互 */
-    .astronaut{
-      position:fixed; left:4vw; top:6vh; width:min(220px,26vw); z-index:0; pointer-events:none;
-      opacity:.95; filter:drop-shadow(0 12px 24px rgba(0,0,0,.35));
-      animation: float 6.5s ease-in-out infinite, yaw 9s ease-in-out infinite;
-    }
-    @keyframes float{ 0%,100%{ transform:translateY(-6px);} 50%{ transform:translateY(6px);} }
-    @keyframes yaw{ 0%,100%{ rotate:-2deg;} 50%{ rotate:2deg;} }
-  </style>
-</head>
-<body>
-
-  <!-- 背景层 -->
-  <canvas id="bg"></canvas>
-  <div class="gradient-mask" aria-hidden="true"></div>
-
-  <!-- 宇航员（白色填充改为透明：相关几何使用 fill="none" + stroke 保留轮廓） -->
-  <svg class="astronaut" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <defs>
-      <radialGradient id="gGlow" cx="50%" cy="45%" r="70%">
-        <stop offset="0%" stop-color="rgba(180,220,255,.9)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/>
-      </radialGradient>
-      <!-- 原“白色宇航服”改透明，这里保留定义但不再使用；轮廓以 stroke 呈现 -->
-      <linearGradient id="gVisor" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#8fd3ff"/><stop offset="100%" stop-color="#003a7a"/>
-      </linearGradient>
-    </defs>
-    <circle cx="100" cy="120" r="110" fill="url(#gGlow)"/>
-    <!-- 背包轮廓 -->
-    <rect x="50" y="95" width="100" height="80" rx="12" fill="none" stroke="#aeb7c7" stroke-width="2" opacity=".9"/>
-    <!-- 头盔外壳轮廓 -->
-    <circle cx="100" cy="70" r="46" fill="none" stroke="#9aa3b6" stroke-width="3"/>
-    <!-- 面罩保留（非白色） -->
-    <ellipse cx="100" cy="70" rx="34" ry="28" fill="url(#gVisor)" stroke="#5b86ad" stroke-width="2"/>
-    <path d="M80 58 C92 50 108 50 120 58" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="3" opacity=".6"/>
-    <!-- 身体轮廓 -->
-    <rect x="62" y="110" width="76" height="80" rx="14" fill="none" stroke="#9aa3b6" stroke-width="3"/>
-    <!-- 控制面板轮廓与指示灯（非白色） -->
-    <rect x="78" y="128" width="44" height="28" rx="6" fill="none" stroke="#1a2540" stroke-width="2"/>
-    <circle cx="88" cy="142" r="4" fill="#ff6b6b"/>
-    <circle cx="100" cy="142" r="4" fill="#ffd166"/>
-    <circle cx="112" cy="142" r="4" fill="#6bffb2"/>
-    <!-- 手臂轮廓 -->
-    <path d="M62 128 q-22 10 -18 30 q4 16 22 10" fill="none" stroke="#9aa3b6" stroke-width="3"/>
-    <path d="M138 128 q22 10 18 30 q-4 16 -22 10" fill="none" stroke="#9aa3b6" stroke-width="3"/>
-    <!-- 腿轮廓 -->
-    <rect x="68" y="190" width="24" height="44" rx="8" fill="none" stroke="#9aa3b6" stroke-width="3"/>
-    <rect x="108" y="190" width="24" height="44" rx="8" fill="none" stroke="#9aa3b6" stroke-width="3"/>
-    <!-- 靴子轮廓 -->
-    <rect x="62" y="230" width="36" height="16" rx="8" fill="none" stroke="#6b7a91" stroke-width="2"/>
-    <rect x="102" y="230" width="36" height="16" rx="8" fill="none" stroke="#6b7a91" stroke-width="2"/>
-    <!-- 安全绳（淡） -->
-    <path d="M150 140 q40 10 30 36 q-10 24 -60 16" fill="none" stroke="rgba(160,190,255,.45)" stroke-width="2"/>
-  </svg>
-
-  <!-- 控制面板（可最小化） -->
-  <div class="hud" id="hud" role="region" aria-label="背景设置">
-    <div class="hud-title">背景设置</div>
-    <button id="hud-min" class="hud-minbtn" aria-expanded="true" aria-label="最小化面板">最小化</button>
-
-    <div class="hud-body">
-      <label for="mode">模式</label>
-      <select id="mode">
-        <option value="chaos">A 混沌三体轨迹</option>
-        <option value="eclipse">B 掩星日食</option>
-        <option value="emblem">C 三日凌空符号</option>
-      </select>
-
-      <label for="intensity">强度</label>
-      <input id="intensity" type="range" min="0" max="100" step="1" value="60">
-
-      <button id="toggle" class="wide" aria-pressed="true">关闭背景动画</button>
-      <div class="muted wide">提示：设置会保存；系统“减少动态效果”将默认关闭动画。</div>
-    </div>
-  </div>
-
-  <!-- 主体内容（中心） -->
-  <div class="hero">
-    <main>
-      <header>
-        <h1>Jinger</h1>
-        <p>博士申请者｜研究方向：资产定价、微观理论、金融科技</p>
-        <nav>
-          <a href="#about">关于我</a>
-          <a href="#research">研究方向</a>
-          <a href="#articles">文章</a>
-          <a href="#contact">联系</a>
-        </nav>
-      </header>
-
-      <section id="about">
-        <h2>关于我</h2>
-        <p>你好，我是 Jinger，正在准备博士申请。我关注资产定价、微观理论和金融科技，同时也记录一些研究想法和思考。</p>
-        <p><a href="CV.pdf" target="_blank">下载我的简历（PDF）</a></p>
-      </section>
-
-      <section id="research">
-        <h2>研究方向</h2>
-        <ul>
-          <li>资产定价的理论与实证研究</li>
-          <li>微观经济理论与市场行为</li>
-          <li>金融科技</li>
-        </ul>
-      </section>
-
-      <section id="articles">
-        <h2>文章与想法</h2>
-        <ul>
-          <li><a href="#">理论模型</a>（2025-06）</li>
-          <li><a href="#">数据处理</a>（2025-08）</li>
-          <li><a href="#">博士申请准备</a>（草稿）</li>
-        </ul>
-      </section>
-
-      <section id="contact">
-        <h2>联系我</h2>
-        <p>邮箱：<a href="mailto:guoj.24@pbcsf.tsinghua.edu.cn">guoj.24@pbcsf.tsinghua.edu.cn</a></p>
-        <p>GitHub：<a href="https://github.com/jingeriiing" target="_blank">jinger</a></p>
-      </section>
-
-      <footer><p>© 2025 Jinger. All rights reserved.</p></footer>
-    </main>
-  </div>
-
-  <!-- 背景动画（以 CSS 尺寸为逻辑坐标，中心对齐；含面板最小化与状态持久化） -->
-  <script>
-  (function(){
-    const canvas = document.getElementById('bg');
-    const ctx = canvas.getContext('2d');
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    const hud = document.getElementById('hud');
-    const hudBtn = document.getElementById('hud-min');
-
-    const selMode = document.getElementById('mode');
-    const rangeInt = document.getElementById('intensity');
-    const btn = document.getElementById('toggle');
-
-    const key='bg-state-v1';
-    const keyHud='hud-collapsed';
-    const prefersReduced = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || false;
-    let saved=null; try{ saved=JSON.parse(localStorage.getItem(key)||'null'); }catch(_){}
-    const state={ running: saved?.running??(!prefersReduced), mode: saved?.mode??'chaos', intensity: saved?.intensity??60 };
-
-    // 面板折叠状态（持久化）
-    let collapsed = false;
-    try { collapsed = localStorage.getItem(keyHud) === '1'; } catch(_) {}
-    function applyHudCollapsed(){
-      hud.classList.toggle('collapsed', collapsed);
-      hudBtn.textContent = collapsed ? '展开' : '最小化';
-      hudBtn.setAttribute('aria-expanded', String(!collapsed));
-    }
-    function persistHudCollapsed(){
-      try { localStorage.setItem(keyHud, collapsed ? '1' : '0'); } catch(_) {}
-    }
-    hudBtn.addEventListener('click', ()=>{ collapsed = !collapsed; applyHudCollapsed(); persistHudCollapsed(); });
-    applyHudCollapsed();
-
-    // 画布逻辑尺寸
-    let W=0, H=0;
-    function resize(){
-      W = Math.max(1, Math.round(canvas.clientWidth));
-      H = Math.max(1, Math.round(canvas.clientHeight));
-      canvas.width  = Math.round(W * dpr);
-      canvas.height = Math.round(H * dpr);
-      ctx.setTransform(1,0,0,1,0,0);
-      ctx.scale(dpr, dpr);
-      if(!state.running){ ctx.fillStyle='#000214'; ctx.fillRect(0,0,W,H); }
-    }
-    addEventListener('resize', resize, {passive:true}); resize();
-
-    // UI 初值与持久化
-    selMode.value = state.mode; rangeInt.value = state.intensity;
-    btn.setAttribute('aria-pressed', state.running);
-    btn.textContent = state.running ? '关闭背景动画' : '开启背景动画';
-    function persist(){ try{ localStorage.setItem(key, JSON.stringify(state)); }catch(_){} }
-
-    // 工具
-    function stars(n){ return Array.from({length:n},()=>({ x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.2+.3, a:Math.random()*6.283, s:Math.random()*.2+.05 })); }
-
-    // 模式 A：混沌三体（中心）
-    function Chaos(){
-      const ss = stars(240);
-      const suns = [
-        {x: W*.5, y:H*.5, r:3.2, hue:40,  phase:Math.random()*6.283},
-        {x: W*.5, y:H*.5, r:2.6, hue:12,  phase:Math.random()*6.283},
-        {x: W*.5, y:H*.5, r:2.0, hue:200, phase:Math.random()*6.283},
-      ];
-      let t=0;
-      return { step(I){
-        const k=I/60; t+=0.016*k;
-        ctx.fillStyle='rgba(0,2,10,0.18)'; ctx.fillRect(0,0,W,H);
-        const cg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.min(W,H)*0.6);
-        cg.addColorStop(0,'rgba(20,40,80,.14)'); cg.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=cg; ctx.fillRect(0,0,W,H);
-
-        for(const s of ss){ s.a+=s.s*(.8+.6*k); const tw=(Math.sin(s.a)*.5+.5)*.6+.2;
-          ctx.globalAlpha=tw; ctx.fillStyle='#cfd8ff'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.283); ctx.fill(); }
-        ctx.globalAlpha=1;
-
-        suns.forEach((s,i)=>{
-          const R1=(46+18*Math.sin(t*.9+i))*(.9+.6*k);
-          const R2=(68+14*Math.cos(t*.7+i*1.7))*(.9+.6*k);
-          s.x=W/2+Math.cos(t*.7+s.phase)*R2+Math.sin(t*1.1+i)*R1*.55;
-          s.y=H/2+Math.sin(t*.7+s.phase)*R2*.7+Math.cos(t*.9+i)*R1*.5;
-
-          const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,130);
-          g.addColorStop(0,`hsla(${s.hue},95%,65%,.95)`); g.addColorStop(.22,`hsla(${s.hue},90%,55%,.35)`); g.addColorStop(1,'rgba(0,0,0,0)');
-          ctx.fillStyle=g; ctx.beginPath(); ctx.arc(s.x,s.y,130,0,6.283); ctx.fill();
-
-          ctx.fillStyle=`hsl(${s.hue},95%,90%)`; ctx.beginPath(); ctx.arc(s.x,s.y,s.r*3,0,6.283); ctx.fill();
-        });
-
-        ctx.globalAlpha=.22; ctx.strokeStyle='rgba(180,200,255,.55)'; ctx.lineWidth=.7;
-        ctx.beginPath(); suns.forEach((s,i)=>{ i?ctx.lineTo(s.x,s.y):ctx.moveTo(s.x,s.y); }); ctx.closePath(); ctx.stroke(); ctx.globalAlpha=1;
-      }};
-    }
-
-    // 模式 B：掩星（中心扫掠）
-    function Eclipse(){
-      const ss = stars(180);
-      let t=0, phase=Math.random()*6.283;
-      const sweepR = Math.min(W,H)*0.38;
-      return { step(I){
-        const k=I/60; t+=0.012*(.8+.8*k);
-        ctx.fillStyle='rgba(0,5,18,.25)'; ctx.fillRect(0,0,W,H);
-
-        for(const s of ss){ s.a+=s.s*(.6+.4*k); const tw=(Math.sin(s.a)*.5+.5)*.5+.25;
-          ctx.globalAlpha=tw; ctx.fillStyle='#d6ddff'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.283); ctx.fill(); }
-        ctx.globalAlpha=1;
-
-        const cx=W/2, cy=H/2;
-        const g=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.min(W,H)*.55);
-        g.addColorStop(0,'rgba(255,240,200,.75)'); g.addColorStop(.28,'rgba(255,200,120,.28)'); g.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cx,cy,Math.min(W,H)*.55,0,6.283); ctx.fill();
-
-        const mx = cx + Math.cos(t*.7+phase) * (Math.min(W,H)*.22) * (.8+.4*k);
-        const my = cy + Math.sin(t*.7+phase*1.2) * (Math.min(W,H)*.16) * (.8+.4*k);
-        ctx.fillStyle='rgba(0,0,0,.9)'; ctx.beginPath(); ctx.arc(mx,my,sweepR,0,6.283); ctx.fill();
-      }};
-    }
-
-    // 模式 C：符号（中心）
-    function Emblem(){
-      let t=0;
-      return { step(I){
-        const k=I/60; t+=0.01*(.7+.9*k);
-        ctx.fillStyle='rgba(0,2,10,1)'; ctx.fillRect(0,0,W,H);
-        const cx=W/2, cy=H/2, R=Math.min(W,H)*.22, a=t*.6;
-
-        ctx.strokeStyle='rgba(160,200,255,.45)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.stroke();
-        for(let i=0;i<3;i++){
-          const ang=a+i*2*Math.PI/3, x=cx+Math.cos(ang)*R, y=cy+Math.sin(ang)*R;
-          const grd=ctx.createRadialGradient(x,y,0,x,y,80); grd.addColorStop(0,'rgba(180,220,255,.9)'); grd.addColorStop(1,'rgba(0,0,0,0)');
-          ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(x,y,80,0,6.283); ctx.fill();
-          ctx.fillStyle='rgba(230,240,255,.95)'; ctx.beginPath(); ctx.arc(x,y,6+2*k,0,6.283); ctx.fill();
-        }
-      }};
-    }
-
-    const modes={ chaos:Chaos, eclipse:Eclipse, emblem:Emblem };
-    let engine=modes[state.mode](), rafId=0;
-
-    function loop(){ if(!state.running) return; engine.step(Number(state.intensity)); rafId=requestAnimationFrame(loop); }
-    function start(){ if(state.running) return; state.running=true; persist(); btn.setAttribute('aria-pressed','true'); btn.textContent='关闭背景动画'; cancelAnimationFrame(rafId); loop(); }
-    function stop(){ if(!state.running) return; state.running=false; persist(); btn.setAttribute('aria-pressed','false'); btn.textContent='开启背景动画'; cancelAnimationFrame(rafId); ctx.fillStyle='#000214'; ctx.fillRect(0,0,W,H); }
-
-    btn.addEventListener('click',()=> (state.running?stop():start()));
-    selMode.addEventListener('change',()=>{ state.mode=selMode.value; persist(); cancelAnimationFrame(rafId); engine=modes[state.mode](); ctx.fillStyle='#000214'; ctx.fillRect(0,0,W,H); if(state.running) loop();});
-    rangeInt.addEventListener('input',()=>{ state.intensity=Number(rangeInt.value); persist(); });
-
-    if(state.running){ loop(); } else { stop(); }
-  })();
-  </script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Home | Jing Guo</title><meta name="description" content="Jing Guo — M.S. student at Tsinghua University, PBC School of Finance. Research, curriculum vitae, and reading."><style id="site-styles">
+/* Plain academic layout inspired by the supplied Lingyun Zhou website. */
+:root { --ink: #262626; --muted: #606060; --line: #e3e3e3; --paper: #fff; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 19px/1.55 Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: #666; }
+a:focus-visible, summary:focus-visible { outline: 2px solid #444; outline-offset: 5px; }
+.skip { position: absolute; top: -100px; left: 20px; z-index: 2; background: white; padding: 10px; }
+.skip:focus { top: 8px; }
+.masthead { min-height: 60px; padding: 12px 32px; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.brand { font-size: 22px; letter-spacing: 1px; text-decoration: none; font-weight: 600; }
+nav { display: flex; align-items: center; flex-wrap: wrap; font-size: 16px; gap: 0; }
+nav a { padding: 5px 10px; text-decoration: none; color: #666; }
+nav a + a::before { content: '·'; position: relative; left: -10px; color: #999; }
+nav a[aria-current=page] { color: var(--ink); font-weight: 700; }
+.layout { max-width: 1200px; margin: 0 auto; padding: 24px 28px 80px; min-height: calc(100vh - 130px); }
+main { min-width: 0; }
+h1.page-title { text-align: center; font-size: 46px; line-height: 1.2; font-weight: 700; margin: 3px 0 50px; }
+h2 { font-size: 30px; line-height: 1.3; font-weight: 400; font-variant: small-caps; margin: 34px 0 20px; }
+h3 { font-size: 20px; line-height: 1.45; font-weight: 700; margin: 0 0 7px; }
+p { margin: 0 0 20px; }
+.lede { font-size: inherit; line-height: 1.6; }
+.coauthors, .subtle, .meta { color: var(--muted); }
+.coauthors { font-size: 18px; margin-bottom: 10px; }
+.meta { font-size: 16px; }
+.index-page .layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 60px; padding-top: 40px; }
+.home-title { font-size: 34px; font-weight: 400; font-variant: small-caps; line-height: 1.25; margin: 0 0 32px; }
+.profile { padding-top: 6px; font-size: 17px; }
+.affiliation { line-height: 1.75; }
+.profile-rule { border: 0; margin: 26px 0; }
+.contact h2 { font: 700 17px/1.5 Arial, Helvetica, sans-serif; margin: 0 0 8px; }
+.contact a { display: block; overflow-wrap: anywhere; margin-bottom: 12px; }
+.interests { color: var(--muted); font-size: 16px; line-height: 1.65; }
+.education { padding: 0; margin: 0; list-style: none; }
+.education li { margin-bottom: 22px; }
+.paper { position: relative; margin: 0 0 30px; }
+.research-page .paper { padding-left: 20px; }
+.research-page .paper::before { content: ''; position: absolute; left: 0; top: 11px; width: 6px; height: 6px; background: var(--ink); }
+.paper p:last-child { margin-bottom: 0; }
+details { margin-top: 12px; }
+summary { cursor: pointer; font-size: 16px; width: fit-content; }
+details p { margin: 12px 0 0; font-size: 17px; }
+.cv-page .layout { padding-top: 43px; text-align: center; }
+.cv-link { display: inline-block; font-size: 20px; }
+.reading-page .layout { max-width: 1040px; }
+.reading-page .lede { margin-bottom: 20px; }
+.reading-field { margin: 30px 0 40px; }
+.reading-field > h3 { font-size: 23px; font-weight: 400; font-variant: small-caps; margin: 0 0 12px; }
+.person-books { margin: 0; border-bottom: 1px solid var(--line); }
+.person-books > summary { list-style: none; width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 0; font-size: 18px; }
+.person-books > summary::-webkit-details-marker { display: none; }
+.person-books > summary::after { content: '+'; flex: 0 0 20px; text-align: center; color: var(--muted); font-size: 22px; line-height: 1; }
+.person-books[open] > summary::after { content: '−'; }
+.person-books > summary:hover .person-name { text-decoration: underline; text-underline-offset: 4px; }
+.person-name { flex: 1; min-width: 0; }
+.person-count { white-space: nowrap; font-size: 14px; color: var(--muted); }
+.reading-list { list-style: none; margin: 0; padding: 0; }
+.person-books > .reading-list { margin: 0 0 18px; padding-left: 20px; border-left: 2px solid var(--line); }
+.reading-list li { padding: 9px 0 13px; }
+.reading-list li + li { border-top: 1px solid var(--line); padding-top: 16px; }
+.reading-list h4 { font-size: 18px; font-weight: 600; line-height: 1.55; margin: 0 0 4px; overflow-wrap: anywhere; }
+.reading-list .book-author { color: var(--muted); font-size: 16px; margin: 0; }
+.reading-list .book-kind { color: var(--muted); font-size: 14px; margin: 5px 0 0; }
+footer { max-width: 1200px; padding: 22px 28px; margin: auto; display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-size: 13px; }
+@media (max-width: 760px) {
+  body { font-size: 17px; }
+  .masthead { padding: 16px 22px; flex-wrap: wrap; gap: 12px; }
+  nav { font-size: 15px; }
+  nav a { padding: 5px 8px; }
+  nav a + a::before { left: -8px; }
+  .layout { padding: 28px 22px 48px; }
+  .index-page .layout { display: flex; flex-direction: column; gap: 34px; padding-top: 22px; }
+  .index-page main { order: -1; }
+  .profile { border-top: 1px solid var(--line); padding-top: 26px; }
+  .profile-rule { margin: 18px 0; }
+  .home-title { font-size: 30px; margin-bottom: 24px; }
+  h1.page-title { font-size: 36px; margin-bottom: 36px; }
+  h2 { font-size: 26px; }
+  h3 { font-size: 18px; }
+  .coauthors { font-size: 16px; }
+  .person-books > summary { font-size: 17px; gap: 8px; }
+  .reading-field > h3 { font-size: 21px; }
+  .reading-list h4 { font-size: 17px; }
+  footer { padding: 20px 22px; flex-wrap: wrap; }
+}
+@media (max-width: 420px) {
+  .masthead { display: block; }
+  nav { margin: 9px -8px 0; }
+}
+@media print {
+  .masthead, .skip, footer { display: none; }
+  body { font-size: 11pt; }
+  .layout, .index-page .layout { display: block; padding: 0; max-width: none; min-height: 0; }
+  .profile { margin-bottom: 24px; }
+  .profile .interests { display: none; }
+  h1.page-title { font-size: 24pt; }
+  h2, h3 { break-after: avoid; }
+  .paper, .reading-list li { break-inside: avoid; }
+}
+</style></head>
+<body class="index-page"><a class="skip" href="#main">Skip to content</a><div class="shell"><header class="masthead"><a class="brand" href="index.html">Jing Guo</a><nav aria-label="Main navigation"><a href="index.html" aria-current="page">Home</a><a href="cv.html">CV</a><a href="research.html">Research</a><a href="reading.html">Reading</a></nav></header>
+<div class="layout"><aside class="profile" aria-label="Affiliation and contact"><p class="affiliation">M.S. Student in Finance<br>PBC School of Finance<br>Tsinghua University</p><hr class="profile-rule"><div class="contact"><h2>Contact information</h2><a href="mailto:guoj.24@pbcsf.tsinghua.edu.cn">guoj.24@pbcsf.tsinghua.edu.cn</a><a href="CV.pdf">Curriculum Vitae (PDF)</a></div><hr class="profile-rule"><p class="interests">Outside of research: biographies and history, badminton, billiards, hiking, and video games.</p></aside>
+<main id="main"><h1 class="home-title">Jing Guo</h1><p class="lede">I am a master's student in Finance at the PBC School of Finance, Tsinghua University.</p><p>I am visiting the National University of Singapore from August to December 2026. Previously, I received my B.S. in Financial Engineering from the Central University of Finance and Economics.</p><p><strong>Research interests:</strong> My current research includes structural-change testing in quantile regression, empirical Bayes methods for firm-specific production technologies, and machine learning for tail risk.</p><p>You can find details of my work on the <a href="research.html">Research</a> page and in my <a href="CV.pdf">CV</a>.</p><h2>Working Paper</h2><article class="paper"><h3>Testing for Structural Changes in Factor-Augmented Quantile Regression via Discrete Fourier Transform</h3><p class="coauthors">with Xia Wang and Lingyun Zhou</p><p>Fourier-based tests for structural changes in factor-augmented quantile regression, with applications to U.S. macroeconomic panels.</p><details><summary>Research summary</summary><p>This project develops tests that allow for general forms of coefficient instability at a given conditional quantile. It establishes asymptotic properties and bootstrap validity with PCA-estimated latent factors, evaluates finite-sample size and power using Monte Carlo simulations, and examines structural-change patterns across frequencies in monthly and quarterly U.S. macroeconomic panels.</p></details></article><h2>Education</h2><ul class="education"><li><strong>Tsinghua University</strong><br>PBC School of Finance · M.S. in Finance<div class="meta">September 2024 – June 2027 (expected)</div></li><li><strong>National University of Singapore</strong><br>Visiting Graduate Student<div class="meta">August – December 2026</div></li><li><strong>Central University of Finance and Economics</strong><br>School of Finance · B.S. in Financial Engineering<div class="meta">September 2020 – June 2024</div></li></ul><h2>Beyond Research</h2><p>I enjoy reading biographies and history. My <a href="reading.html">Reading</a> page brings together books about people and the times they lived in.</p></main>
+</div><footer><span>© 2026 Jing Guo</span><span><a href="mailto:guoj.24@pbcsf.tsinghua.edu.cn">Get in touch</a></span></footer></div></body></html>

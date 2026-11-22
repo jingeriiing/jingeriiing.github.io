@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reading | Jing Guo</title><meta name="description" content="Jing Guo — M.S. student at Tsinghua University, PBC School of Finance. Research, curriculum vitae, and reading."><style id="site-styles">
+/* Plain academic layout inspired by the supplied Lingyun Zhou website. */
+:root { --ink: #262626; --muted: #606060; --line: #e3e3e3; --paper: #fff; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 19px/1.55 Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: #666; }
+a:focus-visible, summary:focus-visible { outline: 2px solid #444; outline-offset: 5px; }
+.skip { position: absolute; top: -100px; left: 20px; z-index: 2; background: white; padding: 10px; }
+.skip:focus { top: 8px; }
+.masthead { min-height: 60px; padding: 12px 32px; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.brand { font-size: 22px; letter-spacing: 1px; text-decoration: none; font-weight: 600; }
+nav { display: flex; align-items: center; flex-wrap: wrap; font-size: 16px; gap: 0; }
+nav a { padding: 5px 10px; text-decoration: none; color: #666; }
+nav a + a::before { content: '·'; position: relative; left: -10px; color: #999; }
+nav a[aria-current=page] { color: var(--ink); font-weight: 700; }
+.layout { max-width: 1200px; margin: 0 auto; padding: 24px 28px 80px; min-height: calc(100vh - 130px); }
+main { min-width: 0; }
+h1.page-title { text-align: center; font-size: 46px; line-height: 1.2; font-weight: 700; margin: 3px 0 50px; }
+h2 { font-size: 30px; line-height: 1.3; font-weight: 400; font-variant: small-caps; margin: 34px 0 20px; }
+h3 { font-size: 20px; line-height: 1.45; font-weight: 700; margin: 0 0 7px; }
+p { margin: 0 0 20px; }
+.lede { font-size: inherit; line-height: 1.6; }
+.coauthors, .subtle, .meta { color: var(--muted); }
+.coauthors { font-size: 18px; margin-bottom: 10px; }
+.meta { font-size: 16px; }
+.index-page .layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 60px; padding-top: 40px; }
+.home-title { font-size: 34px; font-weight: 400; font-variant: small-caps; line-height: 1.25; margin: 0 0 32px; }
+.profile { padding-top: 6px; font-size: 17px; }
+.affiliation { line-height: 1.75; }
+.profile-rule { border: 0; margin: 26px 0; }
+.contact h2 { font: 700 17px/1.5 Arial, Helvetica, sans-serif; margin: 0 0 8px; }
+.contact a { display: block; overflow-wrap: anywhere; margin-bottom: 12px; }
+.interests { color: var(--muted); font-size: 16px; line-height: 1.65; }
+.education { padding: 0; margin: 0; list-style: none; }
+.education li { margin-bottom: 22px; }
+.paper { position: relative; margin: 0 0 30px; }
+.research-page .paper { padding-left: 20px; }
+.research-page .paper::before { content: ''; position: absolute; left: 0; top: 11px; width: 6px; height: 6px; background: var(--ink); }
+.paper p:last-child { margin-bottom: 0; }
+details { margin-top: 12px; }
+summary { cursor: pointer; font-size: 16px; width: fit-content; }
+details p { margin: 12px 0 0; font-size: 17px; }
+.cv-page .layout { padding-top: 43px; text-align: center; }
+.cv-link { display: inline-block; font-size: 20px; }
+.reading-page .layout { max-width: 1040px; }
+.reading-page .lede { margin-bottom: 20px; }
+.reading-field { margin: 30px 0 40px; }
+.reading-field > h3 { font-size: 23px; font-weight: 400; font-variant: small-caps; margin: 0 0 12px; }
+.person-books { margin: 0; border-bottom: 1px solid var(--line); }
+.person-books > summary { list-style: none; width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 0; font-size: 18px; }
+.person-books > summary::-webkit-details-marker { display: none; }
+.person-books > summary::after { content: '+'; flex: 0 0 20px; text-align: center; color: var(--muted); font-size: 22px; line-height: 1; }
+.person-books[open] > summary::after { content: '−'; }
+.person-books > summary:hover .person-name { text-decoration: underline; text-underline-offset: 4px; }
+.person-name { flex: 1; min-width: 0; }
+.person-count { white-space: nowrap; font-size: 14px; color: var(--muted); }
+.reading-list { list-style: none; margin: 0; padding: 0; }
+.person-books > .reading-list { margin: 0 0 18px; padding-left: 20px; border-left: 2px solid var(--line); }
+.reading-list li { padding: 9px 0 13px; }
+.reading-list li + li { border-top: 1px solid var(--line); padding-top: 16px; }
+.reading-list h4 { font-size: 18px; font-weight: 600; line-height: 1.55; margin: 0 0 4px; overflow-wrap: anywhere; }
+.reading-list .book-author { color: var(--muted); font-size: 16px; margin: 0; }
+.reading-list .book-kind { color: var(--muted); font-size: 14px; margin: 5px 0 0; }
+footer { max-width: 1200px; padding: 22px 28px; margin: auto; display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-size: 13px; }
+@media (max-width: 760px) {
+  body { font-size: 17px; }
+  .masthead { padding: 16px 22px; flex-wrap: wrap; gap: 12px; }
+  nav { font-size: 15px; }
+  nav a { padding: 5px 8px; }
+  nav a + a::before { left: -8px; }
+  .layout { padding: 28px 22px 48px; }
+  .index-page .layout { display: flex; flex-direction: column; gap: 34px; padding-top: 22px; }
+  .index-page main { order: -1; }
+  .profile { border-top: 1px solid var(--line); padding-top: 26px; }
+  .profile-rule { margin: 18px 0; }
+  .home-title { font-size: 30px; margin-bottom: 24px; }
+  h1.page-title { font-size: 36px; margin-bottom: 36px; }
+  h2 { font-size: 26px; }
+  h3 { font-size: 18px; }
+  .coauthors { font-size: 16px; }
+  .person-books > summary { font-size: 17px; gap: 8px; }
+  .reading-field > h3 { font-size: 21px; }
+  .reading-list h4 { font-size: 17px; }
+  footer { padding: 20px 22px; flex-wrap: wrap; }
+}
+@media (max-width: 420px) {
+  .masthead { display: block; }
+  nav { margin: 9px -8px 0; }
+}
+@media print {
+  .masthead, .skip, footer { display: none; }
+  body { font-size: 11pt; }
+  .layout, .index-page .layout { display: block; padding: 0; max-width: none; min-height: 0; }
+  .profile { margin-bottom: 24px; }
+  .profile .interests { display: none; }
+  h1.page-title { font-size: 24pt; }
+  h2, h3 { break-after: avoid; }
+  .paper, .reading-list li { break-inside: avoid; }
+}
+</style></head>
+<body class="reading-page"><a class="skip" href="#main">Skip to content</a><div class="shell"><header class="masthead"><a class="brand" href="index.html">Jing Guo</a><nav aria-label="Main navigation"><a href="index.html">Home</a><a href="cv.html">CV</a><a href="research.html">Research</a><a href="reading.html" aria-current="page">Reading</a></nav></header>
+<div class="layout"><main id="main"><h1 class="page-title">Reading</h1>
+<p class="lede">For me, reading biographies is both a journey and a conversation. It lets me see the world anew through someone else’s eyes.</p>
+<p>If you have any biographies to recommend, I would love to hear from you. Please <a href="mailto:guoj.24@pbcsf.tsinghua.edu.cn">get in touch by email</a>.</p>
+<section id="biographies" aria-labelledby="biographies-title">
+<h2 id="biographies-title">Biographies</h2>
+<section class="reading-field" aria-labelledby="mathematics-statistics-title">
+<h3 id="mathematics-statistics-title">Mathematics &amp; Statistics</h3>
+<details class="person-books"><summary><span class="person-name">Pierre-Louis Lions</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>A Mathematician&#x27;s Self-Portrait</h4>
+<p class="book-author">Pierre-Louis Lions</p>
+<p class="book-kind">Autobiography</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">John von Neumann</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>The Man from the Future: The Visionary Life of John von Neumann</h4>
+<p class="book-author">Ananyo Bhattacharya</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Lloyd N. Trefethen</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>An Applied Mathematician&#x27;s Apology</h4>
+<p class="book-author">Lloyd N. Trefethen</p>
+<p class="book-kind">Academic reflections</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Cédric Villani</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Birth of a Theorem</h4>
+<p class="book-author">Cédric Villani</p>
+<p class="book-kind">Research memoir</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Stanisław Ulam</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Adventures of a Mathematician</h4>
+<p class="book-author">S. M. Ulam</p>
+<p class="book-kind">Autobiography</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">George E. P. Box</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>An Accidental Statistician: The Life and Memories of George E. P. Box</h4>
+<p class="book-author">George E. P. Box</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Wu Wenjun</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Following My Own Path: An Oral Autobiography of Wu Wenjun</h4>
+<p class="book-author">Wu Wenjun et al.</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Kiyosi Itô</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>A World of Probability: Kiyosi Itô&#x27;s Mathematical Ideas and Methods</h4>
+<p class="book-author">Kiyosi Itô</p>
+<p class="book-kind">Mathematical reflections</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Shing-Tung Yau</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>The Shape of a Life: One Mathematician&#x27;s Search for the Universe&#x27;s Hidden Geometry</h4>
+<p class="book-author">Shing-Tung Yau and Steve Nadis</p>
+<p class="book-kind">Autobiography</p>
+</li>
+</ul>
+</details>
+</section>
+<section class="reading-field" aria-labelledby="physics-title">
+<h3 id="physics-title">Physics &amp; Astronomy</h3>
+<details class="person-books"><summary><span class="person-name">Paul Dirac</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>The Strangest Man: The Hidden Life of Paul Dirac, Mystic of the Atom</h4>
+<p class="book-author">Graham Farmelo</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Werner Heisenberg</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Uncertainty: The Life and Science of Werner Heisenberg</h4>
+<p class="book-author">David C. Cassidy</p>
+<p class="book-kind">Chinese edition, Volume I</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Marie Curie</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Madame Curie: A Biography</h4>
+<p class="book-author">Ève Curie</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Galileo Galilei</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Galileo: A Biography</h4>
+<p class="book-author">B. G. Kuznetsov</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Albert Einstein</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Subtle Is the Lord: The Science and the Life of Albert Einstein</h4>
+<p class="book-author">Abraham Pais</p>
+<p class="book-kind">Chinese edition, Volume I</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Richard Feynman</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Classic Feynman: All the Adventures of a Curious Character</h4>
+<p class="book-author">Richard P. Feynman; edited by Ralph Leighton</p>
+<p class="book-kind">Autobiographical essays</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Conversations with Physicists</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Questions at the Frontiers: Conversations with 14 Physicists</h4>
+<p class="book-author">Miao Qian</p>
+<p class="book-kind">Interviews</p>
+</li>
+</ul>
+</details>
+</section>
+<section class="reading-field" aria-labelledby="economics-title">
+<h3 id="economics-title">Economics</h3>
+<details class="person-books"><summary><span class="person-name">Edmund Phelps</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>My Journeys in Economic Theory</h4>
+<p class="book-author">Edmund Phelps</p>
+</li>
+</ul>
+</details>
+</section>
+<section class="reading-field" aria-labelledby="computing-engineering-title">
+<h3 id="computing-engineering-title">Computer Science &amp; Engineering</h3>
+<details class="person-books"><summary><span class="person-name">Fei-Fei Li</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>The Worlds I See: Curiosity, Exploration, and Discovery at the Dawn of AI</h4>
+<p class="book-author">Fei-Fei Li</p>
+<p class="book-kind">Memoir</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Stephen P. Timoshenko</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>As I Remember: The Autobiography of Stephen P. Timoshenko</h4>
+<p class="book-author">Stephen P. Timoshenko</p>
+<p class="book-kind">Autobiography</p>
+</li>
+</ul>
+</details>
+</section>
+<section class="reading-field" aria-labelledby="business-title">
+<h3 id="business-title">Business &amp; Technology</h3>
+<details class="person-books"><summary><span class="person-name">Bill Gates</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Source Code: My Beginnings</h4>
+<p class="book-author">Bill Gates</p>
+<p class="book-kind">Autobiography</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Steve Jobs</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Steve Jobs</h4>
+<p class="book-author">Walter Isaacson</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Morris Chang</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Morris Chang: An Autobiography, Volume II (1964–2018)</h4>
+<p class="book-author">Morris Chang</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Jensen Huang</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>The Nvidia Way: Jensen Huang and the Making of a Tech Giant</h4>
+<p class="book-author">Tae Kim</p>
+<p class="book-kind">Biography and business history</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Elon Musk</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Elon Musk</h4>
+<p class="book-author">Walter Isaacson</p>
+</li>
+</ul>
+</details>
+</section>
+<section class="reading-field" aria-labelledby="politics-title">
+<h3 id="politics-title">Politics &amp; Public Life</h3>
+<details class="person-books"><summary><span class="person-name">Deng Xiaoping</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>Deng Xiaoping and the Transformation of China</h4>
+<p class="book-author">Ezra F. Vogel</p>
+</li>
+</ul>
+</details>
+<details class="person-books"><summary><span class="person-name">Lee Kuan Yew</span><span class="person-count">2 books</span></summary>
+<ul class="reading-list">
+<li><h4>One Man&#x27;s View of the World</h4>
+<p class="book-author">Lee Kuan Yew</p>
+<p class="book-kind">World affairs</p>
+</li>
+<li><h4>Memoirs of Lee Kuan Yew</h4>
+<p class="book-author">Lee Kuan Yew</p>
+<p class="book-kind">Memoirs</p>
+</li>
+</ul>
+</details>
+</section>
+<section class="reading-field" aria-labelledby="art-title">
+<h3 id="art-title">Art</h3>
+<details class="person-books"><summary><span class="person-name">Wu Guanzhong</span><span class="person-count">1 book</span></summary>
+<ul class="reading-list">
+<li><h4>I Have Let Painting Down: An Autobiography</h4>
+<p class="book-author">Wu Guanzhong</p>
+<p class="book-kind">Autobiography</p>
+</li>
+</ul>
+</details>
+</section>
+</section>
+</main>
+</div><footer><span>© 2026 Jing Guo</span><span><a href="mailto:guoj.24@pbcsf.tsinghua.edu.cn">Get in touch</a></span></footer></div></body></html>
